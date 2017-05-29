@@ -1,6 +1,7 @@
 import click
 import portage
-from os import path, makedirs
+
+from portage.os import path, makedirs
 
 #TODO: global --repo option, (env var?)
 
@@ -75,7 +76,7 @@ def init(list_repos, create, repo, repo_dir):
         r.index.commit('Initialized pomu')
         print('Initialized repository', repo, 'successfully')
 
-@main.command
+@main.command()
 def status():
     """Display pomu status"""
     rs = portage.db[portage.root]['vartree'].settings.repositories
