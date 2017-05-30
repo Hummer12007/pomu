@@ -3,7 +3,7 @@ import click
 
 from pomu.repo.init import init_plain_repo, init_portage_repo
 from pomu.repo.repo import portage_repo_path, portage_repos, pomu_status
-from pomu.util import ResultException
+from pomu.util.result import ResultException
 
 #TODO: global --repo option, (env var?)
 

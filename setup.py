@@ -12,6 +12,6 @@ setup(
     #todo: properly depend on portage
     install_requires=['Click', 'GitPython'],
     entry_points={
-        'console_scripts':['pomu = pomu.pomu:main']
+        'console_scripts':['pomu = pomu.cli:main']
     }
 )

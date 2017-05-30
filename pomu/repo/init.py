@@ -5,7 +5,7 @@ from git import Repo
 from os import path, makedirs
 import portage
 
-from pomu.util import Result, ResultException
+from pomu.util.result import Result, ResultException
 
 def init_plain_repo(create, repo_path):
     """Initialize a plain repository"""
