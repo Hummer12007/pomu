@@ -60,6 +60,7 @@ def status(globalvars):
             return
         if pomu_status(globalvars.repo_path):
             print('pomu is initialized at', globalvars.repo_path)
+            return
         print('pomu is not initialized')
     else:
         for repo in portage_repos():

@@ -20,7 +20,7 @@ def init_plain_repo(create, repo_path):
             return Result.Err('you do not have enough permissions to create the git repository')
         Repo.init(repo_path)
         try:
-            init_pomu(repo_path).unwrap()
+            return Result.Ok(init_pomu(repo_path).unwrap())
         except ResultException as e:
             rmtree(repo_path)
             return Result.Err(str(e))
@@ -51,7 +51,7 @@ def init_portage_repo(create, repo, repo_dir):
             return Result.Error('you do not have enough permissions to setup a portage repo')
         Repo.init(repo_path)
         try:
-            init_pomu(repo_path).unwrap()
+            return Result.Ok(init_pomu(repo_path).unwrap())
         except ResultException as e:
             rmtree(repo_path)
             return Result.Err(str(e))
@@ -73,6 +73,7 @@ def init_pomu(repo_path, name=''):
         open(path.join(pomu_path, '.sentinel'), 'w').close()
     except PermissionError:
         return Result.Err('you do not have enough permissions to modify the repo')
-    r.index.add(pomu_path)
+    r.index.add([path.join('metadata', 'pomu')])
     r.index.commit('Initialized pomu')
-    return Result.Ok('Initialized repository ' + name + ' successfully')
+    ret = Result.Ok('Initialized repository ' + name + ' successfully')
+    return ret
