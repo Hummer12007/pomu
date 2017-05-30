@@ -1,12 +1,14 @@
-import click
-import portage
-from git import Repo
 from shutil import rmtree
-from portage.os import path, makedirs
+
+import click
+from git import Repo
+import portage
+from os import path, makedirs
 
 #TODO: global --repo option, (env var?)
 
 class GlobalVars():
+    """Global state"""
     def __init__(self):
         self.no_portage = False
         self.repo_path = None
@@ -23,7 +25,6 @@ def main(globalvars, no_portage, repo_path):
     """A utility to manage portage overlays"""
     globalvars.no_portage = no_portage
     globalvars.repo_path = repo_path
-    pass
 
 @main.command()
 @click.option('--list-repos', is_flag=True,
@@ -36,11 +37,11 @@ def main(globalvars, no_portage, repo_path):
 @pass_globals
 def init(globalvars, list_repos, create, repo_dir, repo):
     """Initialise pomu for a repository"""
-    rs = portage.db[portage.root]['vartree'].settings.repositories
+    rsets = portage.db[portage.root]['vartree'].settings.repositories
     if list_repos:
         print('Available repos:')
-        for repo in rs.prepos_order:
-            print('\t', repo, rs.prepos[repo].location)
+        for prepo in rsets.prepos_order:
+            print('\t', prepo, rsets.prepos[prepo].location)
         return
     if globalvars.no_portage:
         init_plain_repo(create, globalvars.repo_path)
@@ -75,9 +76,9 @@ def init_portage_repo(create, repo, repo_dir):
     if not repo:
         print('Error: repository name required')
         return
-    rs = portage.db[portage.root]['vartree'].settings.repositories
+    rsets = portage.db[portage.root]['vartree'].settings.repositories
     if create:
-        if repo in rs.prepos_order:
+        if repo in rsets.prepos_order:
             print('Error: a repository with such name already exists!')
             return
         repo_path = path.join(repo_dir, repo)
@@ -98,10 +99,10 @@ def init_portage_repo(create, repo, repo_dir):
         if not init_pomu(repo_path, repo):
             rmtree(repo_path)
     else:
-        if repo not in rs.prepos_order:
+        if repo not in rsets.prepos_order:
             print('Error: repository not found')
             return
-        init_pomu(rs.prepos[repo], repo)
+        init_pomu(rsets.prepos[repo], repo)
 
 def init_pomu(repo_path, name=' '):
     """Initialise pomu for a repository"""
@@ -135,11 +136,10 @@ def status(globalvars):
         if path.isdir(path.join(globalvars.repo_path, 'metadata', 'pomu')):
             print('pomu is initialized at', globalvars.repo_path)
         print('pomu is not initialized')
-        pass
     else:
-        rs = portage.db[portage.root]['vartree'].settings.repositories
-        for repo in rs.prepos_order:
-            if path.isdir(path.join(rs.prepos[repo].location, 'metadata', 'pomu')):
-                print('pomu is initialized for repository', repo, 'at', rs.prepos[repo].location)
+        rsets = portage.db[portage.root]['vartree'].settings.repositories
+        for repo in rsets.prepos_order:
+            if path.isdir(path.join(rsets.prepos[repo].location, 'metadata', 'pomu')):
+                print('pomu is initialized for repository', repo, 'at', rsets.prepos[repo].location)
                 return
         print('pomu is not initialized')
