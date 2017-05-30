@@ -33,10 +33,15 @@ wheels/
 pip-log.txt
 pip-delete-this-directory.txt
 
-
 # Environments
 .env
 .venv
 env/
 venv/
 ENV/
+
+# Vim swap files
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
+[._]s[a-v][a-z]
+[._]sw[a-p]
