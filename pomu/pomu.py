@@ -1,6 +1,6 @@
 import click
 import portage
-
+from git import Repo
 from portage.os import path, makedirs
 
 #TODO: global --repo option, (env var?)
