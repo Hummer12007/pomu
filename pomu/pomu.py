@@ -1,6 +1,7 @@
 import click
 import portage
 from git import Repo
+from shutil import rmtree
 from portage.os import path, makedirs
 
 #TODO: global --repo option, (env var?)
@@ -33,7 +34,6 @@ def init(list_repos, create, repo, repo_dir):
             print('Error: a repository with such name already exists!')
             return
         repo_path = path.join(repo_dir, repo)
-        pomu_path = path.join(repo_path, 'metadata', 'pomu')
         try:
             makedirs(repo_path)
         except PermissionError:
@@ -45,36 +45,36 @@ def init(list_repos, create, repo, repo_dir):
                 f.write('location = ' + repo_path + '\n')
         except PermissionError:
             print('Error: you do not have enough permissions to setup a portage repo')
-            # TODO: cleanup the dir
+            rmtree(repo_path)
             return
         r = Repo.init(repo_path)
-        makedirs(pomu_path)
-        open(path.join(pomu_path, '.sentinel'), 'w').close()
-        r.index.add(pomu_path)
-        r.index.commit('Initialized pomu')
-        print('Initialized repository', repo, 'successfully')
+        if not pomu_init(repo_path):
+            rmtree(repo_path)
     else:
         if repo not in rs.prepos_order:
             print('Error: repository not found')
             return
-        repo_path = rs.prepos[repo]
+        init_pomu(rs.prepos[repo])
+
+def init_pomu(repo_path):
         pomu_path = path.join(repo_path, 'metadata', 'pomu')
         if not path.isdir(path.join(repo_path, '.git')):
             print('Error: target repository should be a git repo')
-            return
+            return False
         if path.isdir(pomu_path):
             print('Repository', repo, 'already initialized')
-            return 
+            return True
         r = Repo(repo_path)
         try:
             makedirs(pomu_path)
             open(path.join(pomu_path, '.sentinel'), 'w').close()
         except PermissionError:
             print('Error: you do not have enough permissions to modify the repo')
-            return
+            return False
         r.index.add(pomu_path)
         r.index.commit('Initialized pomu')
         print('Initialized repository', repo, 'successfully')
+        return True
 
 @main.command()
 def status():
