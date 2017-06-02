@@ -7,7 +7,7 @@ import portage
 
 from pomu.util.result import Result, ResultException
 
-def init_plain_repo(create, repo_path, name=None): #name might be extraneous
+def init_plain_repo(create, repo_path, name=''): #name might be extraneous
     """Initialize a plain repository"""
     if not repo_path:
         return Result.Err('repository path required')
@@ -60,7 +60,7 @@ def init_portage_repo(create, repo, repo_dir):
             return Result.Err('repository not found')
         return init_pomu(rsets.prepos[repo], repo)
 
-def init_new(repo_path, name=None):
+def init_new(repo_path, name=''):
     """Initialize a newly created repository (metadata/layout.conf and pomu)"""
     cnf = path.join(repo_path, 'metadata', 'layout.conf')
     if not path.isfile(cnf):
@@ -72,7 +72,7 @@ def init_new(repo_path, name=None):
             return Result.Err('you do not have enough permissions to modify the repo')
     return init_pomu(repo_path, name)
 
-def init_pomu(repo_path, name=None):
+def init_pomu(repo_path, name=''):
     """Initialise pomu for a repository"""
     pomu_path = path.join(repo_path, 'metadata', 'pomu')
     if not path.isdir(path.join(repo_path, '.git')):
