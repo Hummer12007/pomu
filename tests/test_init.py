@@ -47,6 +47,6 @@ class PortageRepoInitialization(unittest.TestCase):
     def testRepoList(self):
         self.assertEqual(list(portage_repos()), ['gentoo'])
 
-    def testPortageCreate(self)
+    def testPortageCreate(self):
         self.assertTrue(init_portage_repo(True, REPO_DIR, REPO_PATH).is_ok())
         self.assertEqual(pomu_active_repo(), REPO_DIR)
