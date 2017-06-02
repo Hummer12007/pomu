@@ -2,7 +2,7 @@
 import click
 
 from pomu.repo.init import init_plain_repo, init_portage_repo
-from pomu.repo.repo import portage_repo_path, portage_repos, pomu_status
+from pomu.repo.repo import portage_repo_path, portage_repos, pomu_status, pomu_active_repo
 from pomu.util.result import ResultException
 
 #TODO: global --repo option, (env var?)
@@ -63,9 +63,9 @@ def status(globalvars):
             return
         print('pomu is not initialized')
     else:
-        for repo in portage_repos():
-            if pomu_status(portage_repo_path(repo)):
-                print('pomu is initialized for repository', repo, 'at', portage_repo_path(repo))
-                return
-        print('pomu is not initialized')
+        repo = pomu_active_repo()
+        if repo:
+            print('pomu is initialized for repository', repo, 'at', portage_repo_path(repo))
+        else:
+            print('pomu is not initialized')
 

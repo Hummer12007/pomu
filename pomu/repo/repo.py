@@ -18,3 +18,9 @@ def portage_repo_path(repo):
 def pomu_status(repo_path):
     """Check if pomu is enabled for a repository at a given path"""
     return path.isdir(path.join(repo_path, 'metadata', 'pomu'))
+
+def pomu_active_repo():
+    for repo in portage_repos():
+        if pomu_status(portage_repo_path(repo)):
+            return repo
+    return None
