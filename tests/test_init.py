@@ -49,4 +49,5 @@ class PortageRepoInitialization(unittest.TestCase):
 
     def testPortageCreate(self):
         self.assertTrue(init_portage_repo(True, REPO_DIR, REPO_PATH).is_ok())
+        importlib.reload(portage)
         self.assertEqual(pomu_active_repo(), REPO_DIR)
