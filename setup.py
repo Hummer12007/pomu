@@ -9,7 +9,6 @@ setup(
     author_email='hilobakho@gmail.com',
     license='GNU GPLv2',
     packages=find_packages(),
-    #todo: properly depend on portage
     install_requires=['Click', 'GitPython'],
     entry_points={
         'console_scripts':['pomu = pomu.cli:main']
