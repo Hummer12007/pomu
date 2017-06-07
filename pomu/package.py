@@ -42,7 +42,7 @@ class Package():
             return d_path
 
     def read_path(self, d_path):
-        for wd, dirs, files in d_path:
+        for wd, dirs, files in os.walk(d_path):
             wd = self.strip_root(wd)
             self.files.extend([(wd, f) for f in files])
 

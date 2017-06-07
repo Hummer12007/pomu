@@ -6,8 +6,8 @@ from git import Repo
 import portage
 
 class Repository():
-    def __init__(self, path):
-        if not pomu_status(path):
+    def __init__(self, root):
+        if not pomu_status(root):
             raise ValueError('This path is not a valid pomu repository')
         self.root = root
 
@@ -30,7 +30,8 @@ class Repository():
         r = self.repo
         for wd, f in package.files:
             dst = path.join(self.root, wd)
-            r.index.remove(path.join(package.root, wd, f)
+            r.index.remove(path.join(self.root, wd, f))
+            os.remove(path.join(self.root, wd, f))
             try:
                 rmdir(dst)
             except OSError: pass
