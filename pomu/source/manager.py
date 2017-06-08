@@ -73,7 +73,7 @@ class PackageDispatcher():
         for priority, source, handler in self.handlers:
             res = handler(uri)
             if res.is_ok():
-                return source.fetch_package(res.ok())
+                return Result.Ok(source.fetch_package(res.ok()))
         return Result.Err('No handler found for package ' + uri)
 
     def install_package(self, uri):
