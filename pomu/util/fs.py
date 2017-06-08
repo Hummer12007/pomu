@@ -1,6 +1,7 @@
 """
-String utils
+Filesystem utils
 """
+import os
 
 def strip_prefix(string, prefix):
     """Returns a string, stripped from its prefix"""
@@ -8,3 +9,7 @@ def strip_prefix(string, prefix):
         return string[len(prefix):]
     else
         return string
+
+def remove_file(repo, dst):
+    repo.index.remove(dst)
+    os.remove(dst)

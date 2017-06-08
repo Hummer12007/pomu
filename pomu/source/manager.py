@@ -29,6 +29,8 @@ Example:
 #import bisect
 import inspect
 
+from pomu.util.result import Result
+
 class PackageDispatcher():
     def __init__(self):
         self.handlers = []
@@ -66,3 +68,20 @@ class PackageDispatcher():
             if handler(uri).is_ok():
                 return source
         return None
+
+    def get_package(self, uri):
+        for priority, source, handler in self.handlers:
+            res = handler(uri)
+            if res.is_ok():
+                return source.fetch_package(res.ok())
+        return Result.Err('No handler found for package ' + uri)
+
+    def install_package(self, uri):
+        pkg = self.get_package(uri).unwrap()
+        #TODO: write a helper function which expects pomu_active_repo
+        #alternatively, test for it before any command which requires a repo
+        return pomu_active_repo().unwrap().merge(pkg)
+
+    def uninstall_package(self, uri):
+        pkg = self.get_package(uri).unwrap()
+        return pomu_active_repo().unwrap().unmerge(pkg)

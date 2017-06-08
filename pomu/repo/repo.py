@@ -5,6 +5,8 @@ from shutil import copy2
 from git import Repo
 import portage
 
+from pomu.util.fs import remove_file
+
 class Repository():
     def __init__(self, root):
         if not pomu_status(root):
@@ -16,6 +18,11 @@ class Repository():
     def repo(self):
         return Repo(repo_path)
 
+    pomu_dir = property()
+    @pomu_dir.getter
+    def pomu_dir(self):
+        return path.join(self.root, 'metadata/pomu')
+
     def merge(self, package):
         r = self.repo
         for wd, f in package.files:
@@ -23,6 +30,9 @@ class Repository():
             os.makedirs(dst)
             copy2(path.join(package.root, wd, f), dst)
             r.index.add(path.join(dst, f))
+        with open(path.join(self.pomu_dir, package.name), 'w') as f:
+            f.write('{}/{}'.format(wd, f))
+        r.index.add(path.join(self.pomu_dir, package.name))
         r.index.commit('Merged package ' + package.name)
         return Result.Ok('Merged package ' + package.name ' successfully')
 
@@ -30,12 +40,27 @@ class Repository():
         r = self.repo
         for wd, f in package.files:
             dst = path.join(self.root, wd)
-            r.index.remove(path.join(self.root, wd, f))
-            os.remove(path.join(self.root, wd, f))
+            remove_file(path.join(dst, f))
             try:
                 rmdir(dst)
             except OSError: pass
-        self.repo.commit('Removed package ' + package.name + ' successfully')
+        pf = path.join(self.pomu_dir, package.name)
+        if path.isfile(pf):
+            remove_file(pf)
+        r.commit('Removed package ' + package.name + ' successfully')
+        return Result.Ok('Removed package ' + package.name ' successfully')
+
+    def remove_package(self, name):
+        pf = path.join(self.pomu_dir, package.name)
+        if not path.isfile(pf):
+            return Result.Err('Package not found')
+        with open(pf, 'w') as f:
+            for insf in f:
+                remove_file(path.join(self.root, insf))
+        remove_file(pf)
+        r.commit('Removed package ' + package.name + ' successfully')
+        return Result.Ok('Removed package ' + package.name ' successfully')
+
 
 
 def portage_repos():

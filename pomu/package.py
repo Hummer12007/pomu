@@ -6,7 +6,7 @@ A package is supposed to be created by a package source from a set of files.
 
 from os import path
 
-from pomu.util.string import strip_prefix
+from pomu.util.fs import strip_prefix
 
 class Package():
     def __init__(self, name, root, d_path=None, files=None):
