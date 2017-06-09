@@ -29,6 +29,7 @@ Example:
 #import bisect
 import inspect
 
+from pomu.repo.repo import pomu_active_repo
 from pomu.util.result import Result
 
 class PackageDispatcher():

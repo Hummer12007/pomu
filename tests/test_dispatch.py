@@ -1,28 +1,75 @@
+import shutil
 import unittest
+
 from os import path
 from tempfile import mkdtemp
 
-import pomu.source
 from pomu.package import Package
-from pomu.repo.repo import pomu_status, portage_repos, portage_active_repo
+from pomu.repo.init import init_plain_repo
+from pomu.repo.repo import Repository
+from pomu.source import dispatcher
 from pomu.util.result import Result
 
 @dispatcher.source
 class DummySource():
-    def __init__(self, _path):
-        self.path = _path
-
     @dispatcher.handler
-    def parse(self, uri):
-        return Result.Ok(uri)
+    @classmethod
+    def parse(cls, uri):
+        if uri.startswith('/'):
+            return Result.Ok(uri[1:])
+        return Result.Err()
 
-    def fetch_package(self, uri):
-        return Package('test', self.path)
+    @classmethod
+    def fetch_package(cls, uri):
+        return Package('test', cls.path)
 
-class InstallTests(unittests.TestCase):
-
+class DispatcherTests(unittest.TestCase):
     def setUp(self):
-        source_path = mkdtemp()
-        with path.join(source_path, 'test.ebuild') as f:
+        self.source_path = mkdtemp()
+        with path.join(self.source_path, 'test.ebuild') as f:
             f.write('# Copytight 1999-2017\nAll Rights Reserved\nEAPI="0"\n')
-        self.source = DummySource(source_path)
+        DummySource.path = self.source_path
+
+    def testDispatch(self):
+        self.assertEqual(dispatcher.get_package_source('/test').unwrap(), 'test')
+        self.assertTrue(dispatcher.get_package_source('test').is_err())
+
+    def testFetch(self):
+        pkg = dispatcher.get_package('/test').unwrap()
+        self.assertEqual(pkg.files, [('', 'test.ebuild')])
+
+    def tearDown(self):
+        shutil.rmtree(self.source_path)
+
+class InstallTests(unittest.TestCase):
+    def setUp(self):
+        self.source_path = mkdtemp()
+        with path.join(self.source_path, 'test.ebuild') as f:
+            f.write('# Copytight 1999-2017\nAll Rights Reserved\nEAPI="0"\n')
+        DummySource.path = self.source_path
+
+        self.repo_dir = mkdtemp()
+        shutil.rmtree(self.repo_dir)
+        init_plain_repo(True, self.repo_dir).expect()
+        self.repo = Repository(self.repo_dir)
+
+    def tearDown(self):
+        shutil.rmtree(self.repo_dir)
+
+    def testPkgCreate(self):
+        pkg = Package('test', self.source_path, files=['test.ebuild'])
+        self.assertEqual(pkg.files, [('', 'test.ebuild')])
+
+    def testPkgMerge(self):
+        pkg = Package('test', self.source_path)
+        self.repo.merge(pkg).expect()
+
+    def testPkgUnmerge(self):
+        pkg = Package('test', self.source_path)
+        self.repo.merge(pkg).expect()
+        with self.subTest(i=0):
+            self.repo.unmerge(pkg).expect()
+        with self.subTest(i=1):
+            self.repo.remove_package('test').expect()
+        with self.subTest(i=2):
+            self.repo.remove_package('tset').expect_err()

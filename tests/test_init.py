@@ -7,7 +7,6 @@ import portage
 
 from pomu.repo.init import init_plain_repo, init_pomu, init_portage_repo
 from pomu.repo.repo import pomu_status, portage_repos, pomu_active_repo
-from pomu.util.result import Result
 
 REPO_DIR = 'test_repo'
 REPO_PATH = os.path.join(os.getcwd(), REPO_DIR)

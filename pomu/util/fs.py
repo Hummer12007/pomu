@@ -7,7 +7,7 @@ def strip_prefix(string, prefix):
     """Returns a string, stripped from its prefix"""
     if string.startswith(prefix):
         return string[len(prefix):]
-    else
+    else:
         return string
 
 def remove_file(repo, dst):

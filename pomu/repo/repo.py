@@ -13,13 +13,11 @@ class Repository():
             raise ValueError('This path is not a valid pomu repository')
         self.root = root
 
-    repo = property()
-    @repo.getter
+    @property
     def repo(self):
         return Repo(repo_path)
 
-    pomu_dir = property()
-    @pomu_dir.getter
+    @property
     def pomu_dir(self):
         return path.join(self.root, 'metadata/pomu')
 
@@ -34,7 +32,7 @@ class Repository():
             f.write('{}/{}'.format(wd, f))
         r.index.add(path.join(self.pomu_dir, package.name))
         r.index.commit('Merged package ' + package.name)
-        return Result.Ok('Merged package ' + package.name ' successfully')
+        return Result.Ok('Merged package ' + package.name + ' successfully')
 
     def unmerge(self, package):
         r = self.repo

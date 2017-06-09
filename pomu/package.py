@@ -4,7 +4,7 @@ A package can be installed into a repository.
 A package is supposed to be created by a package source from a set of files.
 """
 
-from os import path
+from os import path, walk
 
 from pomu.util.fs import strip_prefix
 
@@ -36,13 +36,13 @@ class Package():
     def strip_root(self, d_path):
             # the path should be either relative, or a child of root
             if d_path.startswith('/'):
-                if path.commonprefix(d_path, root) != root:
+                if path.commonprefix(d_path, self.root) != self.root:
                     raise ValueError('Path should be a subdirectory of root')
-                return strip_prefix(strip_prefix(d_path, root), '/')
+                return strip_prefix(strip_prefix(d_path, self.root), '/')
             return d_path
 
     def read_path(self, d_path):
-        for wd, dirs, files in os.walk(d_path):
+        for wd, dirs, files in walk(d_path):
             wd = self.strip_root(wd)
             self.files.extend([(wd, f) for f in files])
 
