@@ -3,9 +3,11 @@ import click
 
 from pomu.repo.init import init_plain_repo, init_portage_repo
 from pomu.repo.repo import portage_repo_path, portage_repos, pomu_status, pomu_active_repo
+from pomu.source import dispatcher
 from pomu.util.result import ResultException
 
 #TODO: global --repo option, (env var?)
+#TODO: write a neat decorator to pass the repo
 
 class GlobalVars():
     """Global state"""
@@ -54,18 +56,40 @@ def init(globalvars, list_repos, create, repo_dir, repo):
 @pass_globals
 def status(globalvars):
     """Display pomu status"""
-    if globalvars.no_portage:
-        if not globalvars.repo_path:
-            print('Error: repo-path required')
-            return
-        if pomu_status(globalvars.repo_path):
-            print('pomu is initialized at', globalvars.repo_path)
-            return
-        print('pomu is not initialized')
-    else:
-        repo = pomu_active_repo()
-        if repo:
-            print('pomu is initialized for repository', repo, 'at', portage_repo_path(repo))
+    res = pomu_active_repo_(globalvars.no_portage, globalvars.repo_path)
+    if res.is_ok():
+        repo = res.ok()
+        if repo.name:
+            print('pomu is initialized for reporitory', repo.name, 'at', repo.root)
         else:
-            print('pomu is not initialized')
+            print('pomu is initialized at', repo.root)
+    else:
+        print('Error:', res.err())
 
+@main.command()
+@click.argument('package', required=True)
+@pass_globals
+def install(self):
+    res = dispatcher.install_package(package).expect()
+    print(res)
+
+@main.command()
+@click.option('--uri', is_flag=True,
+        help='Specify the package to remove by uri, instead of its name')
+@click.argument('package', required=True)
+@pass_globals
+def uninstall(self):
+    if uri:
+        res = dispatcher.uninstall_package(package).expect()
+        print(res)
+    else:
+        repo = pomu_active_repo_(globalvars.no_portage, globalvars.repo_path).expect()
+        res = repo.remove_package(package).expect()
+        return res
+
+@main.command()
+@click.argument('package', required=True)
+@pass_globals
+def fetch(self):
+    pkg = dispatcher.get_package(package).expect()
+    print('Fetched package', pkg.name, 'at', pkg.root)

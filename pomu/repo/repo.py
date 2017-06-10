@@ -6,12 +6,14 @@ from git import Repo
 import portage
 
 from pomu.util.fs import remove_file
+from pomu.util.result import Result
 
 class Repository():
-    def __init__(self, root):
+    def __init__(self, root, name=None):
         if not pomu_status(root):
             raise ValueError('This path is not a valid pomu repository')
         self.root = root
+        self.name = name
 
     @property
     def repo(self):
@@ -80,9 +82,26 @@ def pomu_status(repo_path):
     """Check if pomu is enabled for a repository at a given path"""
     return path.isdir(path.join(repo_path, 'metadata', 'pomu'))
 
-def pomu_active_repo():
+def pomu_active_portage_repo():
     """Returns a portage repo, for which pomu is enabled"""
     for repo in portage_repos():
         if pomu_status(portage_repo_path(repo)):
             return repo
     return None
+
+def pomu_active_repo():
+    return pomu_active_portage_repo()
+
+#TODO: merge with pomu_active_repo, pass the result
+def pomu_active_repo_(no_portage=None, repo_path=None):
+    if no_portage:
+        if not repo_path:
+            return Result.Err('repo-path required')
+        if pomu_status('repo_path'):
+            return Result.Ok(Repository(repo_path))
+        return Result.Err('pomu is not initialized')
+    else:
+        repo = pomu_active_portage_repo()
+        if repo:
+            return Result.Ok(portage_repo_path(repo), repo)
+        return Result.Err('pomu is not initialized')
