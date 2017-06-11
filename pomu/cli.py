@@ -7,13 +7,23 @@ from pomu.source import dispatcher
 from pomu.util.result import ResultException
 
 #TODO: global --repo option, (env var?)
-#TODO: write a neat decorator to pass the repo
 
 class GlobalVars():
     """Global state"""
     def __init__(self):
         self.no_portage = False
         self.repo_path = None
+
+g_params = GlobalVars()
+
+class needs_repo():
+    def __init__(self, func):
+        self.func = func
+
+    def __call__(self, *args):
+        if not hasattr(pomu.repo, 'active'):
+            pomu_active_repo(g_params.no_portage, g_params.repo_path)
+        self.func(*args)
 
 pass_globals = click.make_pass_decorator(GlobalVars, ensure=True)
 
@@ -22,11 +32,10 @@ pass_globals = click.make_pass_decorator(GlobalVars, ensure=True)
         help='Do not setup the portage repo')
 @click.option('--repo-path',
         help='Path to the repo directory (used with --no-portage)')
-@pass_globals
-def main(globalvars, no_portage, repo_path):
+def main(no_portage, repo_path):
     """A utility to manage portage overlays"""
-    globalvars.no_portage = no_portage
-    globalvars.repo_path = repo_path
+    g_params.no_portage = no_portage
+    g_params.repo_path = repo_path
 
 @main.command()
 @click.option('--list-repos', is_flag=True,
@@ -36,24 +45,23 @@ def main(globalvars, no_portage, repo_path):
 @click.option('--repo-dir', envvar='POMU_REPO_DIR', default='/var/lib/pomu',
         help='Path for creating new repos')
 @click.argument('repo', required=False)
-@pass_globals
-def init(globalvars, list_repos, create, repo_dir, repo):
+def init(g_params, list_repos, create, repo_dir, repo):
     """Initialise pomu for a repository"""
     if list_repos:
         print('Available repos:')
         for prepo in portage_repos():
             print('\t', prepo, portage_repo_path(prepo))
         return
-    if globalvars.no_portage:
-        print(init_plain_repo(create, globalvars.repo_path).expect())
+    if g_params.no_portage:
+        print(init_plain_repo(create, g_params.repo_path).expect())
     else:
         print(init_portage_repo(create, repo, repo_dir).expect())
 
 @main.command()
-@pass_globals
-def status(globalvars):
+@needs_repo
+def status():
     """Display pomu status"""
-    repo = pomu_active_repo_(globalvars.no_portage, globalvars.repo_path).expect()
+    repo = pomu_active_repo()
     if repo.name:
         print('pomu is initialized for reporitory', repo.name, 'at', repo.root)
     else:
@@ -61,8 +69,8 @@ def status(globalvars):
 
 @main.command()
 @click.argument('package', required=True)
-@pass_globals
-def install(globalvars):
+@needs_repo
+def install():
     res = dispatcher.install_package(package).expect()
     print(res)
 
@@ -70,20 +78,20 @@ def install(globalvars):
 @click.option('--uri', is_flag=True,
         help='Specify the package to remove by uri, instead of its name')
 @click.argument('package', required=True)
-@pass_globals
-def uninstall(globalvars):
+@needs_repo
+def uninstall():
     if uri:
         res = dispatcher.uninstall_package(package).expect()
         print(res)
     else:
-        repo = pomu_active_repo_(globalvars.no_portage, globalvars.repo_path).expect()
+        repo = pomu_active_repo()
         res = repo.remove_package(package).expect()
         return res
 
 @main.command()
 @click.argument('package', required=True)
-@pass_globals
-def fetch(self):
+@needs_repo
+def fetch():
     pkg = dispatcher.get_package(package).expect()
     print('Fetched package', pkg.name, 'at', pkg.root)
 

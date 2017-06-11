@@ -82,18 +82,9 @@ def pomu_status(repo_path):
     """Check if pomu is enabled for a repository at a given path"""
     return path.isdir(path.join(repo_path, 'metadata', 'pomu'))
 
-def pomu_active_portage_repo():
-    """Returns a portage repo, for which pomu is enabled"""
-    for repo in portage_repos():
-        if pomu_status(portage_repo_path(repo)):
-            return repo
-    return None
-
-def pomu_active_repo():
-    return pomu_active_portage_repo()
-
-#TODO: merge with pomu_active_repo, pass the result
-def pomu_active_repo_(no_portage=None, repo_path=None):
+@cached
+def pomu_active_repo(no_portage=None, repo_path=None):
+    """Returns a repo for which pomu is enabled"""
     if no_portage:
         if not repo_path:
             return Result.Err('repo-path required')

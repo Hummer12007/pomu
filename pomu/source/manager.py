@@ -79,10 +79,8 @@ class PackageDispatcher():
 
     def install_package(self, uri):
         pkg = self.get_package(uri).unwrap()
-        #TODO: write a helper function which expects pomu_active_repo
-        #alternatively, test for it before any command which requires a repo
-        return pomu_active_repo().unwrap().merge(pkg)
+        return pomu_active_repo().merge(pkg)
 
     def uninstall_package(self, uri):
         pkg = self.get_package(uri).unwrap()
-        return pomu_active_repo().unwrap().unmerge(pkg)
+        return pomu_active_repo().unmerge(pkg)
