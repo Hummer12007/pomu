@@ -11,6 +11,6 @@ setup(
     packages=find_packages(),
     install_requires=['Click', 'GitPython'],
     entry_points={
-        'console_scripts':['pomu = pomu.cli:main']
+        'console_scripts':['pomu = pomu.cli:main_']
     }
 )

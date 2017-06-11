@@ -1,5 +1,5 @@
 """Subroutines with repositories"""
-from os import path, mkdirs, remove, rmdir
+from os import path, makedirs, remove, rmdir
 from shutil import copy2
 
 from git import Repo
@@ -48,7 +48,7 @@ class Repository():
         if path.isfile(pf):
             remove_file(pf)
         r.commit('Removed package ' + package.name + ' successfully')
-        return Result.Ok('Removed package ' + package.name ' successfully')
+        return Result.Ok('Removed package ' + package.name + ' successfully')
 
     def remove_package(self, name):
         pf = path.join(self.pomu_dir, package.name)
@@ -59,7 +59,7 @@ class Repository():
                 remove_file(path.join(self.root, insf))
         remove_file(pf)
         r.commit('Removed package ' + package.name + ' successfully')
-        return Result.Ok('Removed package ' + package.name ' successfully')
+        return Result.Ok('Removed package ' + package.name + ' successfully')
 
 
 

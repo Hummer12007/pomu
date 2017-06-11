@@ -44,32 +44,25 @@ def init(globalvars, list_repos, create, repo_dir, repo):
         for prepo in portage_repos():
             print('\t', prepo, portage_repo_path(prepo))
         return
-    try:
-        if globalvars.no_portage:
-            print(init_plain_repo(create, globalvars.repo_path).expect())
-        else:
-            print(init_portage_repo(create, repo, repo_dir).expect())
-    except ResultException as e:
-        print(str(e))
+    if globalvars.no_portage:
+        print(init_plain_repo(create, globalvars.repo_path).expect())
+    else:
+        print(init_portage_repo(create, repo, repo_dir).expect())
 
 @main.command()
 @pass_globals
 def status(globalvars):
     """Display pomu status"""
-    res = pomu_active_repo_(globalvars.no_portage, globalvars.repo_path)
-    if res.is_ok():
-        repo = res.ok()
-        if repo.name:
-            print('pomu is initialized for reporitory', repo.name, 'at', repo.root)
-        else:
-            print('pomu is initialized at', repo.root)
+    repo = pomu_active_repo_(globalvars.no_portage, globalvars.repo_path).expect()
+    if repo.name:
+        print('pomu is initialized for reporitory', repo.name, 'at', repo.root)
     else:
-        print('Error:', res.err())
+        print('pomu is initialized at', repo.root)
 
 @main.command()
 @click.argument('package', required=True)
 @pass_globals
-def install(self):
+def install(globalvars):
     res = dispatcher.install_package(package).expect()
     print(res)
 
@@ -78,7 +71,7 @@ def install(self):
         help='Specify the package to remove by uri, instead of its name')
 @click.argument('package', required=True)
 @pass_globals
-def uninstall(self):
+def uninstall(globalvars):
     if uri:
         res = dispatcher.uninstall_package(package).expect()
         print(res)
@@ -93,3 +86,12 @@ def uninstall(self):
 def fetch(self):
     pkg = dispatcher.get_package(package).expect()
     print('Fetched package', pkg.name, 'at', pkg.root)
+
+def main_():
+    try:
+        main.main(standalone_mode=False)
+    except ResultException as e:
+        print(str(e))
+
+if __name__ == '__main__':
+    main_()
