@@ -2,7 +2,7 @@
 import click
 
 from pomu.repo.init import init_plain_repo, init_portage_repo
-from pomu.repo.repo import portage_repo_path, portage_repos, pomu_status, pomu_active_repo
+from pomu.repo.repo import portage_repo_path, portage_repos, pomu_active_repo
 from pomu.source import dispatcher
 from pomu.util.result import ResultException
 
@@ -21,8 +21,7 @@ class needs_repo():
         self.func = func
 
     def __call__(self, *args):
-        if not hasattr(pomu.repo, 'active'):
-            pomu_active_repo(g_params.no_portage, g_params.repo_path)
+        pomu_active_repo(g_params.no_portage, g_params.repo_path)
         self.func(*args)
 
 pass_globals = click.make_pass_decorator(GlobalVars, ensure=True)
@@ -70,7 +69,7 @@ def status():
 @main.command()
 @click.argument('package', required=True)
 @needs_repo
-def install():
+def install(package):
     res = dispatcher.install_package(package).expect()
     print(res)
 
@@ -79,7 +78,7 @@ def install():
         help='Specify the package to remove by uri, instead of its name')
 @click.argument('package', required=True)
 @needs_repo
-def uninstall():
+def uninstall(uri, package):
     if uri:
         res = dispatcher.uninstall_package(package).expect()
         print(res)
@@ -91,7 +90,7 @@ def uninstall():
 @main.command()
 @click.argument('package', required=True)
 @needs_repo
-def fetch():
+def fetch(package):
     pkg = dispatcher.get_package(package).expect()
     print('Fetched package', pkg.name, 'at', pkg.root)
 
