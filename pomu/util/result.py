@@ -10,13 +10,13 @@ class Result():
         self._is_val = is_val
 
     @classmethod
-    def Ok(cls, val):
+    def Ok(cls, val=None):
         res = cls(True)
         res._val = val
         return res
 
     @classmethod
-    def Err(cls, val):
+    def Err(cls, val=None):
         res = cls(False)
         res._val = val
         return res
