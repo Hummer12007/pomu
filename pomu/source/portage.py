@@ -4,9 +4,10 @@ A package source module to import packages from configured portage repositories
 import os
 import re
 
+from functools import cmp_to_key
 from os import path
 
-from portage.versions import suffix_value, best
+from portage.versions import best, suffix_value, vercmp
 
 from pomu.repo.repo import portage_repos
 from pomu.source import dispatcher
@@ -21,6 +22,11 @@ class PortagePackage():
         self.name = name
         self.version = version
         self.slot = slot
+
+    def fetch(self):
+        return Package(self.name, portage_repo_path(self.repo),
+                files=[path.join(self.category, self.name, 'metadata.xml'),
+                    path.join(self.category, self.name, self.name + '-' + self.version + '.ebuild')])
 
 suffixes = [x[0] for x in sorted(suffix_value.items(), key=lambda x:x[1])]
 misc_dirs = ['profiles', 'licenses', 'eclass', 'metadata', 'distfiles', 'packages', 'scripts'. '.git']
@@ -37,6 +43,13 @@ class PortageSource():
         pkg, _, slot = uri.partition(':') # slot may be omitted
         if not slot:
             slot = None
+        category, name, vernum, suff, rev = cpv_split(pkg)
+        res = sanity_check(repo, category, name, vernum, suff, rev, slot)
+        if not res:
+            return Result.Err()
+        return Result.Ok(res)
+
+    def cpv_split(pkg):
         # dev-libs/openssl-0.9.8z_p8-r100
         category, _, pkg = pkg.rpartition('/') # category may be omitted
         # openssl-0.9.8z_p8-r100
@@ -59,10 +72,7 @@ class PortageSource():
             vernum = None
         # openssl
         name = pkg
-        res = sanity_check(repo, category, name, vernum, suff, rev, slot)
-        if not res:
-            return Result.Err()
-        return Result.Ok(res)
+        return category, name, vernum, suff, rev
 
 
     @dispatcher.handler()
@@ -96,17 +106,20 @@ class PortageSource():
         pkgs = repo_pkgs(repo, category, name, ver, slot)
         if not pkgs:
             return False
-        return pkgs
+        pkg = sorted(pkgs, key=cmp_to_key(lambda x,y:vercmp(x[3],y[3])), reverse=True)[0]
+        return PortagePackage(*pkg)
+
 
     def ver_str(vernum, suff, rev):
         return vernum + (suff if suff else '') + (rev if rev else '')
 
-    def best_ver(repo, category, name, ver=None, slot=None):
-        """Gets the best (newest) version of a package matching slot in the repo"""
-        ebuilds = [x[:-6] for x in
+    def best_ver(repo, category, name, ver=None):
+        """Gets the best (newest) version of a package  in the repo"""
+        ebuilds = [category + '/' + name + x[len(name):-6] for x in
                 os.listdir(path.join(portage_repo_path(repo)), category, name)
                 if x.endswith('.ebuild')]
-        return best(ebuilds)
+        cat, name, vernum, suff, rev = cpv_split(best(ebuilds))
+        return ver_str(vernum, suff, rev)
 
     def repo_pkgs(repo, category, name, ver=None, slot=None):
         """List of package occurences in the repo"""
@@ -124,5 +137,5 @@ class PortageSource():
         res = []
         for d in dirs:
             if path.isdir(path.join(rpath, d, name)):
-                res.append((repo, d, name, best_ver(repo, d, name))
+                res.append((repo, d, name, best_ver(repo, d, name)))
         return res
