@@ -60,7 +60,7 @@ class PackageDispatcher():
     def register_package_handler(self, source, handler, priority):
         i = 0
         for i in range(len(self.handlers)):
-            if self.handlers[0] > priority:
+            if self.handlers[0][0] > priority:
                 break
         self.handlers.insert(i, (priority, source, handler))
 

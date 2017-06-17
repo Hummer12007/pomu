@@ -40,7 +40,7 @@ class Result():
         return Result.Err(f(self.err())) if not self._is_val else Result.Ok(self.ok())
 
     def unwrap(self):
-        return self.expect(self.err())
+        return self.expect()
 
     def expect(self, msg='Error'):
         if self._is_val:
@@ -48,7 +48,7 @@ class Result():
         raise ResultException(msg + ': ' + self._val)
 
     def unwrap_err(self):
-        return self.expect_err(self.ok())
+        return self.expect_err()
 
     def expect_err(self, msg='Error'):
         if not self._is_val:

@@ -1,2 +1,5 @@
-def pivot(string, idx):
-    return (string[:idx], string[idx:])
+def pivot(string, idx, keep_pivot=True):
+    if keep_pivot:
+        return (string[:idx], string[idx:])
+    else:
+        return (string[:idx], string[idx+1:])

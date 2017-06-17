@@ -19,6 +19,7 @@ g_params = GlobalVars()
 class needs_repo():
     def __init__(self, func):
         self.func = func
+        self.__name__ = func.__name__
 
     def __call__(self, *args):
         pomu_active_repo(g_params.no_portage, g_params.repo_path)
