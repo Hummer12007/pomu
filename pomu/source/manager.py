@@ -37,12 +37,22 @@ class PackageDispatcher():
         self.handlers = []
 
     def source(self, cls):
+        """
+        A decorator to mark package source modules
+        It would register all the methods of the class marked by @handler
+        with the dispatcher.
+        """
         for m, obj in inspect.getmembers(cls):
             if isinstance(obj, self.handler._handler):
                 self.register_package_handler(cls, obj.handler, obj.priority)
         return cls
 
     class handler():
+        """
+        A decorator to denote package source module handler, which
+        should attempt to parse a package descriptor. If it succeeds,
+        the result would be passed to the module for further processing.
+        """
         class _handler():
             def __init__(self, handler):
                 self.handler = handler
@@ -58,6 +68,10 @@ class PackageDispatcher():
             return x
 
     def register_package_handler(self, source, handler, priority):
+        """
+        Register a package handler for a specified source.
+        Handlers with lower priority get called first.
+        """
         i = 0
         for i in range(len(self.handlers)):
             if self.handlers[0][0] > priority:
@@ -65,12 +79,14 @@ class PackageDispatcher():
         self.handlers.insert(i, (priority, source, handler))
 
     def get_package_source(self, uri):
+        """Get a source which accepts the package"""
         for priority, source, handler in self.handlers:
             if handler(uri).is_ok():
                 return source
         return None
 
     def get_package(self, uri):
+        """Fetch a package specified by the descriptor"""
         for priority, source, handler in self.handlers:
             res = handler(uri)
             if res.is_ok():
@@ -78,9 +94,11 @@ class PackageDispatcher():
         return Result.Err('No handler found for package ' + uri)
 
     def install_package(self, uri):
+        """Install a package specified by the descriptor"""
         pkg = self.get_package(uri).unwrap()
         return pomu_active_repo().merge(pkg)
 
     def uninstall_package(self, uri):
+        """Uninstall a package specified by the descriptor"""
         pkg = self.get_package(uri).unwrap()
         return pomu_active_repo().unmerge(pkg)

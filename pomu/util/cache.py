@@ -2,6 +2,9 @@
 Caches the return value of a function -> Result, regardless of input params
 """
 class cached():
+    """
+    A decorator to make the function cache its return value, regardless of input
+    """
     def __init__(self, fun):
         self.fun = fun
     def __call__(self, *args):

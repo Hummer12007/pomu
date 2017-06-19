@@ -1,6 +1,8 @@
 """pomu command line interface"""
 import click
 
+from os import path
+
 from pomu.repo.init import init_plain_repo, init_portage_repo
 from pomu.repo.repo import portage_repo_path, portage_repos, pomu_active_repo
 from pomu.source import dispatcher
@@ -90,10 +92,17 @@ def uninstall(uri, package):
 
 @main.command()
 @click.argument('package', required=True)
-@needs_repo
-def fetch(package):
+@click.option('--into', default=None,
+        help='Specify fetch destination')
+def fetch(package, into):
     pkg = dispatcher.get_package(package).expect()
-    print('Fetched package', pkg.name, 'at', pkg.root)
+    print('Fetched package', pkg, 'at', pkg.root)
+    print('Contents:')
+    for f in pkg.files:
+        print('  ', path.join(*f))
+    if into:
+        pkg.merge_into(into).expect()
+        print('Copied to', into, 'successfully')
 
 def main_():
     try:

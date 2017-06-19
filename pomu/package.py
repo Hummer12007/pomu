@@ -4,12 +4,14 @@ A package can be installed into a repository.
 A package is supposed to be created by a package source from a set of files.
 """
 
-from os import path, walk
+from os import path, walk, makedirs
+from shutil import copy2
 
 from pomu.util.fs import strip_prefix
+from pomu.util.result import Result
 
 class Package():
-    def __init__(self, name, root, d_path=None, files=None):
+    def __init__(self, name, root, category=None, version=None, slot='0', d_path=None, files=None):
         """
         Parameters:
             name - name of the package
@@ -17,9 +19,13 @@ class Package():
             d_path - a subdirectory of the root path, which would be sourced recursively.
                 could be a relative or an absolute path
             files - a set of files to build a package from
+            category, version, slot - self-descriptive
         """
         self.name = name
         self.root = root
+        self.category = category
+        self.version = version
+        self.slot = slot
         self.files = []
         if d_path is None and files is None:
             self.d_path = None
@@ -29,20 +35,44 @@ class Package():
             self.read_path(path.join(self.root, self.d_path))
         elif d_path is None:
             for f in files:
-                self.files.append(self.strip_root(f))
+                self.files.append(path.split(self.strip_root(f)))
         else:
             raise ValueError('You should specify either d_path, or files')
 
     def strip_root(self, d_path):
-            # the path should be either relative, or a child of root
-            if d_path.startswith('/'):
-                if path.commonprefix(d_path, self.root) != self.root:
-                    raise ValueError('Path should be a subdirectory of root')
-                return strip_prefix(strip_prefix(d_path, self.root), '/')
-            return d_path
+        """Strip the root component of a path"""
+        # the path should be either relative, or a child of root
+        if d_path.startswith('/'):
+            if path.commonprefix(d_path, self.root) != self.root:
+                raise ValueError('Path should be a subdirectory of root')
+            return strip_prefix(strip_prefix(d_path, self.root), '/')
+        return d_path
 
     def read_path(self, d_path):
+        """Recursively add files from a subtree"""
         for wd, dirs, files in walk(d_path):
             wd = self.strip_root(wd)
             self.files.extend([(wd, f) for f in files])
 
+    def merge_into(self, dst):
+        """Merges contents of the package into a specified directory"""
+        for wd, f in self.files:
+            dest = path.join(dst, wd)
+            try:
+                makedirs(dest, exist_ok=True)
+                copy2(path.join(self.root, wd, f), dest)
+            except PermissionError:
+                return Result.Err('You do not have enough permissions')
+        return Result.Ok()
+
+
+    def __str__(self):
+        s = ''
+        if self.category:
+            s = self.category + '/'
+        s += self.name
+        if self.version:
+            s += '-' + self.version
+        if self.slot != '0':
+            s += self.slot
+        return s

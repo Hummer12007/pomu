@@ -26,6 +26,7 @@ class PortagePackage():
 
     def fetch(self):
         return Package(self.name, portage_repo_path(self.repo),
+                category=self.category, version=self.version, slot=self.slot,
                 files=[path.join(self.category, self.name, 'metadata.xml'),
                     path.join(self.category, self.name, self.name + '-' + self.version + '.ebuild')])
 
@@ -38,6 +39,7 @@ misc_dirs = ['profiles', 'licenses', 'eclass', 'metadata', 'distfiles', 'package
 
 @dispatcher.source
 class PortageSource():
+    """The source module responsible for fetching portage packages"""
     @dispatcher.handler(priority=5)
     def parse_spec(uri, repo=None):
         # dev-libs/openssl-0.9.8z_p8-r100:0.9.8::gentoo
@@ -77,6 +79,10 @@ class PortageSource():
 
 
 def sanity_check(repo, category, name, vernum, suff, rev, slot):
+    """
+    Checks whether a package descriptor is valid and corresponds
+    to a package in a configured portage repository
+    """
     if not name:
         return False
     if repo and repo not in list(portage_repos()):
@@ -95,10 +101,11 @@ def sanity_check(repo, category, name, vernum, suff, rev, slot):
 
 
 def ver_str(vernum, suff, rev):
+    """Gets the string representation of the version"""
     return vernum + (suff if suff else '') + (rev if rev else '')
 
 def best_ver(repo, category, name, ver=None):
-    """Gets the best (newest) version of a package  in the repo"""
+    """Gets the best (newest) version of a package in the repo"""
     ebuilds = [category + '/' + name + x[len(name):-7] for x in
             os.listdir(path.join(portage_repo_path(repo), category, name))
             if x.endswith('.ebuild')]

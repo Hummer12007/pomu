@@ -12,7 +12,7 @@ from pomu.util.result import Result
 
 @dispatcher.source
 class DummySource():
-    @dispatcher.handler
+    @dispatcher.handler(priority=3)
     @classmethod
     def parse(cls, uri):
         if uri.startswith('/'):
@@ -33,6 +33,7 @@ class DispatcherTests(unittest.TestCase):
     def testDispatch(self):
         self.assertEqual(dispatcher.get_package_source('/test').unwrap(), 'test')
         self.assertTrue(dispatcher.get_package_source('test').is_err())
+        self.assertTrue(dispatcher.get_package('sys-apps/portage').is_ok())
 
     def testFetch(self):
         pkg = dispatcher.get_package('/test').unwrap()
@@ -62,6 +63,10 @@ class InstallTests(unittest.TestCase):
 
     def testPkgMerge(self):
         pkg = Package('test', self.source_path)
+        self.repo.merge(pkg).expect()
+
+    def testPortagePkg(self):
+        pkg = dispatcher.get_package('sys-apps/portage').expect()
         self.repo.merge(pkg).expect()
 
     def testPkgUnmerge(self):

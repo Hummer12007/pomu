@@ -25,11 +25,10 @@ class Repository():
         return path.join(self.root, 'metadata/pomu')
 
     def merge(self, package):
+        """Merge a package into the repository"""
         r = self.repo
+        package.merge(self.root).expect('Failed to merge package')
         for wd, f in package.files:
-            dst = path.join(self.root, wd)
-            makedirs(dst)
-            copy2(path.join(package.root, wd, f), dst)
             r.index.add(path.join(dst, f))
         with open(path.join(self.pomu_dir, package.name), 'w') as f:
             f.write('{}/{}'.format(wd, f))
@@ -38,6 +37,7 @@ class Repository():
         return Result.Ok('Merged package ' + package.name + ' successfully')
 
     def unmerge(self, package):
+        """Remove a package (by contents) from the repository"""
         r = self.repo
         for wd, f in package.files:
             dst = path.join(self.root, wd)
@@ -52,6 +52,7 @@ class Repository():
         return Result.Ok('Removed package ' + package.name + ' successfully')
 
     def remove_package(self, name):
+        """Remove a package (by name) from the repository"""
         r = self.repo
         pf = path.join(self.pomu_dir, name)
         if not path.isfile(pf):
