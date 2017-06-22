@@ -27,9 +27,12 @@ class Repository():
     def merge(self, package):
         """Merge a package into the repository"""
         r = self.repo
-        package.merge(self.root).expect('Failed to merge package')
+        package.merge_into(self.root).expect('Failed to merge package')
         for wd, f in package.files:
             r.index.add(path.join(dst, f))
+        manifests = package.gen_manifests(self.root).expect()
+        for m in manifests:
+            r.index.add(m)
         with open(path.join(self.pomu_dir, package.name), 'w') as f:
             f.write('{}/{}'.format(wd, f))
         r.index.add(path.join(self.pomu_dir, package.name))

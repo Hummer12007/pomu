@@ -75,7 +75,7 @@ class PortageSource():
 
     @classmethod
     def fetch_package(cls, pkg):
-       return pkg.fetch()
+        return pkg.fetch()
 
 
 def sanity_check(repo, category, name, vernum, suff, rev, slot):

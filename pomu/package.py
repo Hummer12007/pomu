@@ -7,6 +7,8 @@ A package is supposed to be created by a package source from a set of files.
 from os import path, walk, makedirs
 from shutil import copy2
 
+import subprocess
+
 from pomu.util.fs import strip_prefix
 from pomu.util.result import Result
 
@@ -64,6 +66,25 @@ class Package():
             except PermissionError:
                 return Result.Err('You do not have enough permissions')
         return Result.Ok()
+
+    def gen_manifests(self, dst):
+        """
+        Generate manifests for the installed package.
+        TODO: use portage APIs instead of calling repoman.
+        """
+        dirs = [x for wd, f in self.files if y.endswith('.ebuild')]
+        dirs = list(set(dirs))
+        res = []
+        for d_ in dirs:
+            d = path.join(dst, d)
+            ret = subprocess.run(['repoman', 'manifest'],
+                    stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                    cwd=d)
+            if r != 0:
+                return Result.Err('Failed to generate manifest at', d)
+            if path.exists(path.join(d, 'Manifest')):
+                res.append(path.join(d, 'Manifest'))
+        return Result.Ok(res)
 
 
     def __str__(self):
