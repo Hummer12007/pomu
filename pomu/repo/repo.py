@@ -27,15 +27,26 @@ class Repository():
     def merge(self, package):
         """Merge a package into the repository"""
         r = self.repo
+        pkgdir = path.join(self.pomu_dir, package.category, package.name)
+        if slot != 0:
+            pkgdir = path.join(pkgdir, slot)
         package.merge_into(self.root).expect('Failed to merge package')
         for wd, f in package.files:
             r.index.add(path.join(dst, f))
         manifests = package.gen_manifests(self.root).expect()
         for m in manifests:
             r.index.add(m)
-        with open(path.join(self.pomu_dir, package.name), 'w') as f:
-            f.write('{}/{}'.format(wd, f))
+        with open(path.join(pkgdir, 'FILES'), 'w') as f:
+            for w, f in package.files:
+                f.write('{}/{}'.format(w, f))
+            for m in manifests:
+                f.write(strip_prefix(m, self.root))
+        with open(path.join(pkgdir, 'VERSION')) as f:
+            f.write(package.version)
+        with open(path.join(self.pomu_dir, 'world'), 'a+') as f:
+            f.write(package.category, '/', package.name)
         r.index.add(path.join(self.pomu_dir, package.name))
+        r.index.add(self.pomu_dir)
         r.index.commit('Merged package ' + package.name)
         return Result.Ok('Merged package ' + package.name + ' successfully')
 
