@@ -36,19 +36,25 @@ class Repository():
         manifests = package.gen_manifests(self.root).expect()
         for m in manifests:
             r.index.add(m)
-        with open(path.join(pkgdir, 'FILES'), 'w') as f:
-            for w, f in package.files:
-                f.write('{}/{}'.format(w, f))
-            for m in manifests:
-                f.write(strip_prefix(m, self.root))
-        with open(path.join(pkgdir, 'VERSION')) as f:
-            f.write(package.version)
+        self.write_meta(pkgdir, package, manifests)
         with open(path.join(self.pomu_dir, 'world'), 'a+') as f:
             f.write(package.category, '/', package.name)
+            f.write('\n' if package.slot == '0' else ':{}\n'.format(package.slot))
         r.index.add(path.join(self.pomu_dir, package.name))
         r.index.add(self.pomu_dir)
         r.index.commit('Merged package ' + package.name)
         return Result.Ok('Merged package ' + package.name + ' successfully')
+
+    def write_meta(self, pkgdir, package, manifests):
+        with open(path.join(pkgdir, 'FILES'), 'w') as f:
+            for w, f in package.files:
+                f.write('{}/{}\n'.format(w, f))
+            for m in manifests:
+                f.write('{}\n'.format(strip_prefix(m, self.root)))
+        if package.backend:
+            package.backend.write_meta(pkgdir)
+        with open(path.join(pkgdir, 'VERSION')) as f:
+            f.write(package.version)
 
     def unmerge(self, package):
         """Remove a package (by contents) from the repository"""
@@ -68,16 +74,15 @@ class Repository():
     def remove_package(self, name):
         """Remove a package (by name) from the repository"""
         r = self.repo
-        pf = path.join(self.pomu_dir, name)
+        pf = path.join(self.pomu_dir, name, 'FILES')
         if not path.isfile(pf):
             return Result.Err('Package not found')
         with open(pf, 'w') as f:
             for insf in f:
                 remove_file(path.join(self.root, insf))
-        remove_file(pf)
+        remove_file(path.join(self.pomu_dir, name))
         r.commit('Removed package ' + name + ' successfully')
         return Result.Ok('Removed package ' + name + ' successfully')
-
 
 
 def portage_repos():

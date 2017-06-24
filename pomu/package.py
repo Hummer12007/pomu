@@ -2,6 +2,7 @@
 A package is a set of files, situated in a root directory.
 A package can be installed into a repository.
 A package is supposed to be created by a package source from a set of files.
+A package is supposed to know, where it came from.
 """
 
 from os import path, walk, makedirs
@@ -13,9 +14,10 @@ from pomu.util.fs import strip_prefix
 from pomu.util.result import Result
 
 class Package():
-    def __init__(self, name, root, category=None, version=None, slot='0', d_path=None, files=None):
+    def __init__(self, backend, source, name, root, category=None, version=None, slot='0', d_path=None, files=None):
         """
         Parameters:
+            backend - specific source module object/class
             name - name of the package
             root - root path of the repository (if applicable)
             d_path - a subdirectory of the root path, which would be sourced recursively.
@@ -23,6 +25,7 @@ class Package():
             files - a set of files to build a package from
             category, version, slot - self-descriptive
         """
+        self.backend = backend
         self.name = name
         self.root = root
         self.category = category
