@@ -17,6 +17,8 @@ from pomu.util.str import pivot
 
 class PortagePackage():
     """A class to represent a portage package"""
+    __name__ = 'portage'
+
     def __init__(self, repo, category, name, version, slot='0'):
         self.repo = repo
         self.category = category

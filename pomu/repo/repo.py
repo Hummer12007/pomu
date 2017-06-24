@@ -52,6 +52,8 @@ class Repository():
             for m in manifests:
                 f.write('{}\n'.format(strip_prefix(m, self.root)))
         if package.backend:
+            with open(path.join(pkgdir, 'BACKEND'), 'w') as f:
+                f.write('{}\n'.format(package.backend.__name__))
             package.backend.write_meta(pkgdir)
         with open(path.join(pkgdir, 'VERSION')) as f:
             f.write(package.version)
