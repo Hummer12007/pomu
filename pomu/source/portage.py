@@ -101,6 +101,10 @@ class PortageSource():
     def fetch_package(cls, pkg):
         return pkg.fetch()
 
+    @classmethod
+    def from_meta_dir(cls, metadir):
+        return PortagePackage.from_data_dir(cls, path.join(metadir, 'PORTAGE_DATA'))
+
 
 def sanity_check(repo, category, name, vernum, suff, rev, slot, ver=None):
     """

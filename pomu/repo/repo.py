@@ -86,6 +86,29 @@ class Repository():
         r.commit('Removed package ' + name + ' successfully')
         return Result.Ok('Removed package ' + name + ' successfully')
 
+    def get_package(self, category, name, slot='0'):
+        """Get a package by name"""
+        with open(path.join(self.pomu_dir, 'world'), 'r') as f:
+            lines = [x.strip() for x in f]
+            if slot == '0':
+                spec = '{}/{}'.format(category, name)
+            else:
+                spec = '{}/{}:{}'.format(category, name, slot)
+            if not lines.has(spec):
+                return Result.Err('Package not found')
+        if slot == '0':
+            pkgdir = path.join(self.pomu_dir, category, name)
+        else:
+            pkgdir = path.join(self.pomu_dir, category, name, slot)
+        with open(path.join(pkgdir, 'BACKEND'), 'r') as f:
+            bname = f.readline().strip()
+        backend = dispatcher.backends[bname].from_meta_dir(pkgdir)
+        with open(path.join(pkgdir, 'VERSION'), 'r') as f:
+            version = f.readline().strip()
+        with open(path.join(pkgdir, 'FILES'), 'r') as f:
+            files = [x.strip() for x in f]
+        return Package(backend, name, self.root, category=category, version=version, slot=slot, files=files)
+
 
 def portage_repos():
     """Yield the repositories configured for portage"""

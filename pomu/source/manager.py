@@ -35,6 +35,7 @@ from pomu.util.result import Result
 class PackageDispatcher():
     def __init__(self):
         self.handlers = []
+        self.backends = {}
 
     def source(self, cls):
         """
@@ -42,6 +43,7 @@ class PackageDispatcher():
         It would register all the methods of the class marked by @handler
         with the dispatcher.
         """
+        self.backends[cls.__name__] = cls
         for m, obj in inspect.getmembers(cls):
             if isinstance(obj, self.handler._handler):
                 self.register_package_handler(cls, obj.handler, obj.priority)
