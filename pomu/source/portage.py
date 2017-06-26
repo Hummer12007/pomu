@@ -95,7 +95,33 @@ class PortageSource():
         elif uri.startswith(':'):
             repo = None
             uri = uri[1:]
-        return parse_spec(uri, repo)
+        return PortageSource.parse_spec(uri, repo)
+
+    @dispatcher.handler(priority=4)
+    def parse_repo_ebuild(uri):
+        if not path.exists(uri):
+            return Result.Err()
+        uri = path.abspath(uri)
+        prefixes = [(x, portage_repo_path(x)) for x in portage_repos()]
+        for repo, repo_path in prefixes:
+            repo_path = repo_path.rstrip('/') + '/'
+            if uri.startswith(repo):
+                if path.isfile(uri):
+                    if not uri.endswith('.ebuild'):
+                        return Result.Err()
+                    _, name, v1, v2, v3 = cpv_split(path.basename(uri))
+                    ver = ver_str(v1, v2, v3)
+                    dircomps = path.dirname(uri)[len(repo_path):].split('/')
+                    if len(dircomps) != 2:
+                        return Result.Err()
+                    return PortageSource.parse_spec('{}/{}-{}::{}'.format(dircomps[0], name, ver, repo))
+                elif path.isdir(uri):
+                    dircomps = path.dirname(uri)[len(repo_path):].split('/')
+                    if len(dircomps) != 2:
+                        return Result.Err()
+                    return PortageSource.parse_spec('{}/{}'.format(*dircomps))
+            return Result.Err()
+
 
     @classmethod
     def fetch_package(cls, pkg):
@@ -160,6 +186,7 @@ def repo_pkgs(repo, category, name, ver=None, slot=None):
             res.append((repo, d, name, best_ver(repo, d, name)))
     return res
 
+#NOTE: consider moving cpv_split and ver_str into util
 def cpv_split(pkg):
     # dev-libs/openssl-0.9.8z_p8-r100
     category, _, pkg = pkg.rpartition('/') # category may be omitted
