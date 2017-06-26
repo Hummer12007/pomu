@@ -86,16 +86,8 @@ class Repository():
         r.commit('Removed package ' + name + ' successfully')
         return Result.Ok('Removed package ' + name + ' successfully')
 
-    def get_package(self, category, name, slot='0'):
-        """Get a package by name"""
-        with open(path.join(self.pomu_dir, 'world'), 'r') as f:
-            lines = [x.strip() for x in f]
-            if slot == '0':
-                spec = '{}/{}'.format(category, name)
-            else:
-                spec = '{}/{}:{}'.format(category, name, slot)
-            if not lines.has(spec):
-                return Result.Err('Package not found')
+    def _get_package(self, category, name, slot='0'):
+        """Get an existing package"""
         if slot == '0':
             pkgdir = path.join(self.pomu_dir, category, name)
         else:
@@ -108,6 +100,17 @@ class Repository():
         with open(path.join(pkgdir, 'FILES'), 'r') as f:
             files = [x.strip() for x in f]
         return Package(backend, name, self.root, category=category, version=version, slot=slot, files=files)
+
+    def get_package(self, name, category=None, slot=None):
+        """Get a package by name"""
+        with open(path.join(self.pomu_dir, 'world'), 'r') as f:
+            for spec in f:
+                cat, _, nam = spec.partition('/')
+                nam, _, slo = nam.partition(':')
+                if (not category or category == cat) and nam == name:
+                    if not slot or (slot == '0' and not slo) or slot == slo:
+                        return self._get_package(category, name, slot)
+        return Result.Err('Package not found')
 
 
 def portage_repos():
@@ -142,11 +145,11 @@ def pomu_active_repo(no_portage=None, repo_path=None):
     if no_portage:
         if not repo_path:
             return Result.Err('repo-path required')
-        if pomu_status('repo_path'):
+        if pomu_status(repo_path):
             return Result.Ok(Repository(repo_path))
         return Result.Err('pomu is not initialized')
     else:
         repo = pomu_active_portage_repo()
         if repo:
-            return Result.Ok(portage_repo_path(repo), repo)
+            return Result.Ok(Repository(repo))
         return Result.Err('pomu is not initialized')

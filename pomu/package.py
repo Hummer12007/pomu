@@ -14,7 +14,7 @@ from pomu.util.fs import strip_prefix
 from pomu.util.result import Result
 
 class Package():
-    def __init__(self, backend, source, name, root, category=None, version=None, slot='0', d_path=None, files=None):
+    def __init__(self, backend, name, root, category=None, version=None, slot='0', d_path=None, files=None):
         """
         Parameters:
             backend - specific source module object/class

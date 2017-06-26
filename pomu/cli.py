@@ -73,6 +73,7 @@ def status():
 @click.argument('package', required=True)
 @needs_repo
 def install(package):
+    """Install a package"""
     res = dispatcher.install_package(package).expect()
     print(res)
 
@@ -82,6 +83,7 @@ def install(package):
 @click.argument('package', required=True)
 @needs_repo
 def uninstall(uri, package):
+    """Uninstall a package"""
     if uri:
         res = dispatcher.uninstall_package(package).expect()
         print(res)
@@ -95,6 +97,7 @@ def uninstall(uri, package):
 @click.option('--into', default=None,
         help='Specify fetch destination')
 def fetch(package, into):
+    """Fetch a package into a directory"""
     pkg = dispatcher.get_package(package).expect()
     print('Fetched package', pkg, 'at', pkg.root)
     print('Contents:')
@@ -103,6 +106,22 @@ def fetch(package, into):
     if into:
         pkg.merge_into(into).expect()
         print('Copied to', into, 'successfully')
+
+@main.command()
+@click.argument('package', required=True)
+@needs_repo
+def show(package):
+    """Display installed package info"""
+    repo = pomu_active_repo()
+    category, _, name = package.rpartition('/')
+    name, _, slot = name.partition(':')
+    pkg = repo.get_package(name, category, slot).expect()
+    print('Package', pkg, 'version', pkg.version)
+    print('Merged into repository', repo.name, 'at', repo.root)
+    for f in pkg.files:
+        print('  ', path.join(*f))
+    print('Backend:', pkg.backend.__name__)
+    print('Backend detailes:', pkg.backend)
 
 def main_():
     try:
