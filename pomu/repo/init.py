@@ -7,8 +7,14 @@ import portage
 
 from pomu.util.result import Result, ResultException
 
-def init_plain_repo(create, repo_path, name=''): #name might be extraneous
-    """Initialize a plain repository"""
+def init_plain_repo(create, repo_path):
+    """
+    Initialize a plain repository
+    Parameters:
+        create - if true, create a new git repo,
+                 else, reuse an existing one
+        repo_path - a path for the repository to reside in
+    """
     if not repo_path:
         return Result.Err('repository path required')
     if create:
@@ -30,7 +36,14 @@ def init_plain_repo(create, repo_path, name=''): #name might be extraneous
         return init_pomu(repo_path)
 
 def init_portage_repo(create, repo, repo_dir):
-    """Initialize a portage repository"""
+    """
+    Initialize a portage repository
+    Parameters:
+        create - if true, create a new portage repo with git,
+                 else, reuse an existing one
+        repo - name of the repository
+        repo_dir - location of the newly created repository, if applicable
+    """
     if not repo:
         return Result.Err('repository name required')
     rsets = portage.db[portage.root]['vartree'].settings.repositories
@@ -61,7 +74,12 @@ def init_portage_repo(create, repo, repo_dir):
         return init_pomu(rsets.prepos[repo], repo)
 
 def init_new(repo_path, name=''):
-    """Initialize a newly created repository (metadata/layout.conf and pomu)"""
+    """
+    Initialize a newly created repository (metadata/layout.conf and pomu)
+    Parameters:
+        repo_path - path to the repository
+        name - name of the repository
+    """
     cnf = path.join(repo_path, 'metadata', 'layout.conf')
     if not path.isfile(cnf):
         try:
@@ -73,7 +91,12 @@ def init_new(repo_path, name=''):
     return init_pomu(repo_path, name)
 
 def init_pomu(repo_path, name=''):
-    """Initialise pomu for a repository"""
+    """
+    Initialise pomu for a repository
+    Parameters:
+        repo_path - path to the repository
+        name - name of the repository
+    """
     pomu_path = path.join(repo_path, 'metadata', 'pomu')
     if not path.isdir(path.join(repo_path, '.git')):
         return Result.Err('target repository should be a git repo')

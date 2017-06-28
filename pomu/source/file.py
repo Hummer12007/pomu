@@ -2,15 +2,11 @@
 A package source module to import packages from filesystem locations (ebuilds)
 """
 
-import os
-
 from os import path
-from shutil import copy2
-from tempfile import mkdtemp
 
 from pomu.package import Package
 from pomu.source import dispatcher
-from pomu.source.portage import cpv_split, ver_str
+from pomu.util.pkg import cpv_split, ver_str
 from pomu.util.query import query
 from pomu.util.result import Result
 
@@ -26,11 +22,13 @@ class LocalEbuild():
         self.path = path
 
     def fetch(self):
-        root = mkdtemp()
-        pkgpath = path.join(root, self.category, self.name)
-        os.makedirs(pkgpath)
-        copy2(self.path, pkgpath)
-        return Package(self, self.name, root, self.category, self.version)
+        return Package(self, self.name, '/', self.category, self.version,
+                filemap = {
+                    path.join(
+                        self.category,
+                        self.name,
+                        '{}/{}-{}.ebuild'.format(self.category, self.name, self.version)
+                    ) : self.path})
     
     @staticmethod
     def from_data_file(path):

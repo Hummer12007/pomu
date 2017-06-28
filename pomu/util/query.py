@@ -1,14 +1,15 @@
 """
 A module to (non)interactively query the user for impure values
 """
-
-import sys
-
 from pomu.util.result import Result
 
 def query(name, prompt=None, default=None):
     """
     Queries the impure world for name
+    Parameters:
+        name - the name
+        prompt - prompt text
+        default - default value used for errors, forced non-interactive etc.
     TODO: non-interactive
     """
     if not prompt:

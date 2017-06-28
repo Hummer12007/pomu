@@ -1,16 +1,22 @@
 """Subroutines with repositories"""
-from os import path, makedirs, rmdir
-from shutil import copy2
+from os import path, rmdir
 
 from git import Repo
 import portage
 
+from pomu.package import Package
+from pomu.source import dispatcher
 from pomu.util.cache import cached
-from pomu.util.fs import remove_file
+from pomu.util.fs import remove_file, strip_prefix
 from pomu.util.result import Result
 
 class Repository():
     def __init__(self, root, name=None):
+        """
+        Parameters:
+            root - root of the repository
+            name - name of the repository
+        """
         if not pomu_status(root):
             raise ValueError('This path is not a valid pomu repository')
         self.root = root
@@ -25,14 +31,14 @@ class Repository():
         return path.join(self.root, 'metadata/pomu')
 
     def merge(self, package):
-        """Merge a package into the repository"""
+        """Merge a package (a pomu.package.Package package) into the repository"""
         r = self.repo
         pkgdir = path.join(self.pomu_dir, package.category, package.name)
-        if slot != 0:
-            pkgdir = path.join(pkgdir, slot)
+        if package.slot != 0:
+            pkgdir = path.join(pkgdir, package.slot)
         package.merge_into(self.root).expect('Failed to merge package')
         for wd, f in package.files:
-            r.index.add(path.join(dst, f))
+            r.index.add(path.join(self.root, wd, f))
         manifests = package.gen_manifests(self.root).expect()
         for m in manifests:
             r.index.add(m)
@@ -46,6 +52,13 @@ class Repository():
         return Result.Ok('Merged package ' + package.name + ' successfully')
 
     def write_meta(self, pkgdir, package, manifests):
+        """
+        Write metadata for a Package object
+        Parameters:
+            pkgdir - destination directory
+            package - the package object
+            manifests - list of generated manifest files
+        """
         with open(path.join(pkgdir, 'FILES'), 'w') as f:
             for w, f in package.files:
                 f.write('{}/{}\n'.format(w, f))
@@ -75,19 +88,11 @@ class Repository():
 
     def remove_package(self, name):
         """Remove a package (by name) from the repository"""
-        r = self.repo
-        pf = path.join(self.pomu_dir, name, 'FILES')
-        if not path.isfile(pf):
-            return Result.Err('Package not found')
-        with open(pf, 'w') as f:
-            for insf in f:
-                remove_file(path.join(self.root, insf))
-        remove_file(path.join(self.pomu_dir, name))
-        r.commit('Removed package ' + name + ' successfully')
-        return Result.Ok('Removed package ' + name + ' successfully')
+        pkg = self.get_package(name).expect()
+        return self.unmerge(pkg)
 
     def _get_package(self, category, name, slot='0'):
-        """Get an existing package"""
+        """Get an existing package (by category, name and slot), reading the manifest"""
         if slot == '0':
             pkgdir = path.join(self.pomu_dir, category, name)
         else:
@@ -102,7 +107,7 @@ class Repository():
         return Package(backend, name, self.root, category=category, version=version, slot=slot, files=files)
 
     def get_package(self, name, category=None, slot=None):
-        """Get a package by name"""
+        """Get a package by name, category and slot"""
         with open(path.join(self.pomu_dir, 'world'), 'r') as f:
             for spec in f:
                 cat, _, nam = spec.partition('/')
@@ -121,7 +126,7 @@ def portage_repos():
         yield repo
 
 def portage_repo_path(repo):
-    """Get the path of a given portage repository"""
+    """Get the path of a given portage repository (repo)"""
     rsets = portage.db[portage.root]['vartree'].settings.repositories
 
     if repo in rsets.prepos:
@@ -129,7 +134,7 @@ def portage_repo_path(repo):
     return None
 
 def pomu_status(repo_path):
-    """Check if pomu is enabled for a repository at a given path"""
+    """Check if pomu is enabled for a repository at a given path (repo_path)"""
     return path.isdir(path.join(repo_path, 'metadata', 'pomu'))
 
 def pomu_active_portage_repo():

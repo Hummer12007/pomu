@@ -11,6 +11,11 @@ def strip_prefix(string, prefix):
         return string
 
 def remove_file(repo, dst):
-    """Removes a file from a repository"""
+    """
+    Removes a file from a repository (adding changes to the index)
+    Parameters:
+        repo - the repo
+        dst - the file
+    """
     repo.index.remove(dst)
     os.remove(dst)

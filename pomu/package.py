@@ -14,7 +14,7 @@ from pomu.util.fs import strip_prefix
 from pomu.util.result import Result
 
 class Package():
-    def __init__(self, backend, name, root, category=None, version=None, slot='0', d_path=None, files=None):
+    def __init__(self, backend, name, root, category=None, version=None, slot='0', d_path=None, files=None, filemap=None):
         """
         Parameters:
             backend - specific source module object/class
@@ -23,6 +23,7 @@ class Package():
             d_path - a subdirectory of the root path, which would be sourced recursively.
                 could be a relative or an absolute path
             files - a set of files to build a package from
+            filemap - a mapping from destination files to files in the filesystem
             category, version, slot - self-descriptive
         """
         self.backend = backend
@@ -31,21 +32,24 @@ class Package():
         self.category = category
         self.version = version
         self.slot = slot
-        self.files = []
-        if d_path is None and files is None:
+        self.filemap = {}
+        if d_path is None and files is None and filemap is None:
             self.d_path = None
             self.read_path(self.root)
-        elif files is None:
+        elif d_path:
             self.d_path = self.strip_root(d_path)
             self.read_path(path.join(self.root, self.d_path))
-        elif d_path is None:
+        elif files:
             for f in files:
-                self.files.append(path.split(self.strip_root(f)))
+                dst = self.strip_root(f)
+                self.filemap[dst] = path.join(self.root, dst)
+        elif filemap:
+            self.filemap = filemap
         else:
-            raise ValueError('You should specify either d_path, or files')
+            raise ValueError('You should specify either d_path, files or filemap')
 
     def strip_root(self, d_path):
-        """Strip the root component of a path"""
+        """Strip the root component of d_path"""
         # the path should be either relative, or a child of root
         if d_path.startswith('/'):
             if path.commonprefix(d_path, self.root) != self.root:
@@ -54,36 +58,37 @@ class Package():
         return d_path
 
     def read_path(self, d_path):
-        """Recursively add files from a subtree"""
+        """Recursively add files from a subtree (specified by d_path)"""
         for wd, dirs, files in walk(d_path):
             wd = self.strip_root(wd)
-            self.files.extend([(wd, f) for f in files])
+            self.filemap.update({path.join(wd, f): path.join(self.root, wd, f) for f in files})
 
     def merge_into(self, dst):
-        """Merges contents of the package into a specified directory"""
-        for wd, f in self.files:
+        """Merges contents of the package into a specified directory (dst)"""
+        for trg, src in self.filemap.items():
+            wd, _ = path.split(trg)
             dest = path.join(dst, wd)
             try:
-                makedirs(dest, exist_ok=True)
-                copy2(path.join(self.root, wd, f), dest)
+                makedirs(wd, exists_ok=True)
+                copy2(src, dest)
             except PermissionError:
                 return Result.Err('You do not have enough permissions')
         return Result.Ok()
 
     def gen_manifests(self, dst):
         """
-        Generate manifests for the installed package.
+        Generate manifests for the installed package (in the dst directory).
         TODO: use portage APIs instead of calling repoman.
         """
-        dirs = [x for wd, f in self.files if y.endswith('.ebuild')]
+        dirs = [wd for wd, f in self.files if f.endswith('.ebuild')]
         dirs = list(set(dirs))
         res = []
         for d_ in dirs:
-            d = path.join(dst, d)
+            d = path.join(dst, d_)
             ret = subprocess.run(['repoman', 'manifest'],
                     stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                     cwd=d)
-            if r != 0:
+            if ret.returncode != 0:
                 return Result.Err('Failed to generate manifest at', d)
             if path.exists(path.join(d, 'Manifest')):
                 res.append(path.join(d, 'Manifest'))
