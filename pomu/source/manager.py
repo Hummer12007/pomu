@@ -29,7 +29,6 @@ Example:
 #import bisect
 import inspect
 
-from pomu.repo.repo import pomu_active_repo
 from pomu.util.result import Result
 
 class PackageDispatcher():
@@ -95,12 +94,12 @@ class PackageDispatcher():
                 return Result.Ok(source.fetch_package(res.ok()))
         return Result.Err('No handler found for package ' + uri)
 
-    def install_package(self, uri):
-        """Install a package specified by the descriptor"""
+    def install_package(self, repo, uri):
+        """Install a package specified by the descriptor into the repository"""
         pkg = self.get_package(uri).unwrap()
-        return pomu_active_repo().merge(pkg)
+        return repo.merge(pkg)
 
-    def uninstall_package(self, uri):
+    def uninstall_package(self, repo, uri):
         """Uninstall a package specified by the descriptor"""
         pkg = self.get_package(uri).unwrap()
-        return pomu_active_repo().unmerge(pkg)
+        return repo.unmerge(pkg)

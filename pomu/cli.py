@@ -74,7 +74,7 @@ def status():
 @needs_repo
 def install(package):
     """Install a package"""
-    res = dispatcher.install_package(package).expect()
+    res = dispatcher.install_package(pomu_active_repo(), package).expect()
     print(res)
 
 @main.command()
@@ -84,11 +84,11 @@ def install(package):
 @needs_repo
 def uninstall(uri, package):
     """Uninstall a package"""
+    repo = pomu_active_repo()
     if uri:
-        res = dispatcher.uninstall_package(package).expect()
+        res = dispatcher.uninstall_package(repo, package).expect()
         print(res)
     else:
-        repo = pomu_active_repo()
         res = repo.remove_package(package).expect()
         return res
 

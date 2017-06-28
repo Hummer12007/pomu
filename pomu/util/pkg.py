@@ -4,8 +4,11 @@ A set of utility function to manipulate package descriptions
 
 import re
 
-from pomu.util.portage import suffixes
+from portage.versions import suffix_value
+
 from pomu.util.str import pivot
+
+suffixes = [x[0] for x in sorted(suffix_value.items(), key=lambda x:x[1])]
 
 def ver_str(vernum, suff, rev):
     """Gets the string representation of the version (specified by number, suffix and rev)"""

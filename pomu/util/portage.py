@@ -6,12 +6,11 @@ import os
 
 from os import path
 
-from portage.versions import best, suffix_value
+from portage.versions import suffix_value
 
 from pomu.repo.repo import portage_repos, portage_repo_path
 from pomu.util.pkg import cpv_split, ver_str
 
-suffixes = [x[0] for x in sorted(suffix_value.items(), key=lambda x:x[1])]
 misc_dirs = ['profiles', 'licenses', 'eclass', 'metadata', 'distfiles', 'packages', 'scripts', '.git']
 
 def best_ver(repo, category, name, ver=None):

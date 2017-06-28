@@ -5,7 +5,6 @@ from git import Repo
 import portage
 
 from pomu.package import Package
-from pomu.source import dispatcher
 from pomu.util.cache import cached
 from pomu.util.fs import remove_file, strip_prefix
 from pomu.util.result import Result
@@ -93,6 +92,7 @@ class Repository():
 
     def _get_package(self, category, name, slot='0'):
         """Get an existing package (by category, name and slot), reading the manifest"""
+        from pomu.source import dispatcher
         if slot == '0':
             pkgdir = path.join(self.pomu_dir, category, name)
         else:
