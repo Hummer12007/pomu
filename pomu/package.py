@@ -48,11 +48,18 @@ class Package():
         else:
             raise ValueError('You should specify either d_path, files or filemap')
 
+    @property
+    def files(self):
+        res = []
+        for k in self.filemap:
+            res.append(path.split(k))
+        return res
+
     def strip_root(self, d_path):
         """Strip the root component of d_path"""
         # the path should be either relative, or a child of root
         if d_path.startswith('/'):
-            if path.commonprefix(d_path, self.root) != self.root:
+            if path.commonprefix([d_path, self.root]) != self.root:
                 raise ValueError('Path should be a subdirectory of root')
             return strip_prefix(strip_prefix(d_path, self.root), '/')
         return d_path

@@ -83,8 +83,8 @@ class PackageDispatcher():
         """Get a source which accepts the package"""
         for priority, source, handler in self.handlers:
             if handler(uri).is_ok():
-                return source
-        return None
+                return Result.Ok(source)
+        return Result.Err('No handler found for package ' + uri)
 
     def get_package(self, uri):
         """Fetch a package specified by the descriptor"""

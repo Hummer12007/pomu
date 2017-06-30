@@ -156,5 +156,5 @@ def pomu_active_repo(no_portage=None, repo_path=None):
     else:
         repo = pomu_active_portage_repo()
         if repo:
-            return Result.Ok(Repository(repo))
+            return Result.Ok(Repository(portage_repo_path(repo), repo))
         return Result.Err('pomu is not initialized')

@@ -6,7 +6,7 @@ import os
 
 from os import path
 
-from portage.versions import suffix_value
+from portage.versions import best
 
 from pomu.repo.repo import portage_repos, portage_repo_path
 from pomu.util.pkg import cpv_split, ver_str
