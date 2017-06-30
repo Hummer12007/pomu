@@ -14,7 +14,7 @@ from pomu.util.fs import strip_prefix
 from pomu.util.result import Result
 
 class Package():
-    def __init__(self, backend, name, root, category=None, version=None, slot='0', d_path=None, files=None, filemap=None):
+    def __init__(self, name, root, backend=None, category=None, version=None, slot='0', d_path=None, files=None, filemap=None):
         """
         Parameters:
             backend - specific source module object/class
@@ -76,7 +76,7 @@ class Package():
             wd, _ = path.split(trg)
             dest = path.join(dst, wd)
             try:
-                makedirs(wd, exists_ok=True)
+                makedirs(dest, exist_ok=True)
                 copy2(src, dest)
             except PermissionError:
                 return Result.Err('You do not have enough permissions')
@@ -96,7 +96,7 @@ class Package():
                     stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                     cwd=d)
             if ret.returncode != 0:
-                return Result.Err('Failed to generate manifest at', d)
+                return Result.Err('Failed to generate manifest at ' + d)
             if path.exists(path.join(d, 'Manifest')):
                 res.append(path.join(d, 'Manifest'))
         return Result.Ok(res)

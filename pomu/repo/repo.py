@@ -1,5 +1,5 @@
 """Subroutines with repositories"""
-from os import path, rmdir
+from os import path, rmdir, makedirs
 
 from git import Repo
 import portage
@@ -33,20 +33,20 @@ class Repository():
         """Merge a package (a pomu.package.Package package) into the repository"""
         r = self.repo
         pkgdir = path.join(self.pomu_dir, package.category, package.name)
-        if package.slot != 0:
+        if package.slot != '0':
             pkgdir = path.join(pkgdir, package.slot)
         package.merge_into(self.root).expect('Failed to merge package')
         for wd, f in package.files:
-            r.index.add(path.join(self.root, wd, f))
+            r.index.add([path.join(wd, f)])
         manifests = package.gen_manifests(self.root).expect()
         for m in manifests:
-            r.index.add(m)
+            r.index.add([m])
         self.write_meta(pkgdir, package, manifests)
         with open(path.join(self.pomu_dir, 'world'), 'a+') as f:
-            f.write(package.category, '/', package.name)
+            f.write('{}/{}'.format(package.category, package.name))
             f.write('\n' if package.slot == '0' else ':{}\n'.format(package.slot))
-        r.index.add(path.join(self.pomu_dir, package.name))
-        r.index.add(self.pomu_dir)
+        r.index.add([path.join(self.pomu_dir, package.category, package.name)])
+        r.index.add([path.join(self.pomu_dir, 'world')])
         r.index.commit('Merged package ' + package.name)
         return Result.Ok('Merged package ' + package.name + ' successfully')
 
@@ -58,16 +58,17 @@ class Repository():
             package - the package object
             manifests - list of generated manifest files
         """
-        with open(path.join(pkgdir, 'FILES'), 'w') as f:
-            for w, f in package.files:
-                f.write('{}/{}\n'.format(w, f))
+        makedirs(pkgdir, exist_ok=True)
+        with open(path.join(pkgdir, 'FILES'), 'w+') as f:
+            for wd, fil in package.files:
+                f.write('{}/{}\n'.format(wd, fil))
             for m in manifests:
                 f.write('{}\n'.format(strip_prefix(m, self.root)))
         if package.backend:
-            with open(path.join(pkgdir, 'BACKEND'), 'w') as f:
+            with open(path.join(pkgdir, 'BACKEND'), 'w+') as f:
                 f.write('{}\n'.format(package.backend.__name__))
             package.backend.write_meta(pkgdir)
-        with open(path.join(pkgdir, 'VERSION')) as f:
+        with open(path.join(pkgdir, 'VERSION'), 'w+') as f:
             f.write(package.version)
 
     def unmerge(self, package):
@@ -97,14 +98,16 @@ class Repository():
             pkgdir = path.join(self.pomu_dir, category, name)
         else:
             pkgdir = path.join(self.pomu_dir, category, name, slot)
-        with open(path.join(pkgdir, 'BACKEND'), 'r') as f:
-            bname = f.readline().strip()
-        backend = dispatcher.backends[bname].from_meta_dir(pkgdir)
+        backend = None
+        if path.exists(path.join(pkgdir, 'BACKEND')):
+            with open(path.join(pkgdir, 'BACKEND'), 'r') as f:
+                bname = f.readline().strip()
+            backend = dispatcher.backends[bname].from_meta_dir(pkgdir)
         with open(path.join(pkgdir, 'VERSION'), 'r') as f:
             version = f.readline().strip()
         with open(path.join(pkgdir, 'FILES'), 'r') as f:
             files = [x.strip() for x in f]
-        return Package(backend, name, self.root, category=category, version=version, slot=slot, files=files)
+        return Package(name, self.root, backend, category=category, version=version, slot=slot, files=files)
 
     def get_package(self, name, category=None, slot=None):
         """Get a package by name, category and slot"""

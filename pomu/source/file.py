@@ -22,7 +22,7 @@ class LocalEbuild():
         self.path = path
 
     def fetch(self):
-        return Package(self, self.name, '/', self.category, self.version,
+        return Package(self.name, '/', self, self.category, self.version,
                 filemap = {
                     path.join(
                         self.category,

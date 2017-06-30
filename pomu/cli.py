@@ -120,8 +120,9 @@ def show(package):
     print('Merged into repository', repo.name, 'at', repo.root)
     for f in pkg.files:
         print('  ', path.join(*f))
-    print('Backend:', pkg.backend.__name__)
-    print('Backend detailes:', pkg.backend)
+    if pkg.backend:
+        print('Backend:', pkg.backend.__name__)
+        print('Backend detailes:', pkg.backend)
 
 def main_():
     try:

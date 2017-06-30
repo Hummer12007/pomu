@@ -30,7 +30,6 @@ class PlainRepoInitialization(unittest.TestCase):
 class PortageRepoInitialization(unittest.TestCase):
 
     def setUp(self):
-        pomu_active_repo._drop()
         os.environ['EROOT'] = REPO_PATH
         os.environ['ROOT'] = REPO_PATH
         os.environ['PORTAGE_CONFIGROOT'] = REPO_PATH
@@ -42,6 +41,11 @@ class PortageRepoInitialization(unittest.TestCase):
         self.REPO_DIR = REPO_DIR
 
     def tearDown(self):
+        pomu_active_repo._drop()
+        del os.environ['EROOT']
+        del os.environ['ROOT']
+        del os.environ['PORTAGE_CONFIGROOT']
+        importlib.reload(portage)
         rmtree(REPO_PATH)
 
     def testRepoList(self):

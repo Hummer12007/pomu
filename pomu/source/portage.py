@@ -25,7 +25,7 @@ class PortagePackage():
         self.slot = slot
 
     def fetch(self):
-        return Package(self, self.name, portage_repo_path(self.repo),
+        return Package(self.name, portage_repo_path(self.repo), self,
                 category=self.category, version=self.version, slot=self.slot,
                 files=[path.join(self.category, self.name, 'metadata.xml'),
                     path.join(self.category, self.name, self.name + '-' + self.version + '.ebuild')])

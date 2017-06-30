@@ -1,7 +1,7 @@
 import shutil
 import unittest
 
-from os import path
+from os import path, makedirs
 from tempfile import mkdtemp
 
 from pomu.package import Package
@@ -20,13 +20,15 @@ class DummySource():
 
     @classmethod
     def fetch_package(cls, uri):
-        return Package(cls, 'test', cls.path)
+        return Package('test', cls.path, backend=cls, category='test')
+
 
 class DispatcherTests(unittest.TestCase):
     def setUp(self):
         pomu_active_repo._drop()
         self.source_path = mkdtemp()
-        with open(path.join(self.source_path, 'test.ebuild'), 'w+') as f:
+        makedirs(path.join(self.source_path, 'test'))
+        with open(path.join(self.source_path, 'test', 'test.ebuild'), 'w+') as f:
             f.write('# Copytight 1999-2017\nAll Rights Reserved\nEAPI="0"\n')
         DummySource.path = self.source_path
 
@@ -37,17 +39,18 @@ class DispatcherTests(unittest.TestCase):
 
     def testFetch(self):
         pkg = dispatcher.get_package('/test').unwrap()
-        self.assertEqual(pkg.files, [('', 'test.ebuild')])
+        self.assertEqual(pkg.files, [('test', 'test.ebuild')])
 
     def tearDown(self):
         shutil.rmtree(self.source_path)
 
-"""
+
 class InstallTests(unittest.TestCase):
     def setUp(self):
         pomu_active_repo._drop()
         self.source_path = mkdtemp()
-        with open(path.join(self.source_path, 'test.ebuild'), 'w+') as f:
+        makedirs(path.join(self.source_path, 'test'))
+        with open(path.join(self.source_path, 'test', 'test.ebuild'), 'w+') as f:
             f.write('# Copytight 1999-2017\nAll Rights Reserved\nEAPI="0"\n')
         DummySource.path = self.source_path
 
@@ -60,24 +63,24 @@ class InstallTests(unittest.TestCase):
         shutil.rmtree(self.repo_dir)
 
     def testPkgCreate(self):
-        pkg = Package('test', self.source_path, files=['test.ebuild'])
-        self.assertEqual(pkg.files, [('', 'test.ebuild')])
-
-    def testPkgMerge(self):
-        pkg = Package('test', self.source_path)
-        self.repo.merge(pkg).expect()
+        pkg = Package('test', self.source_path, category='test', files=['test/test.ebuild'])
+        self.assertEqual(pkg.files, [('test', 'test.ebuild')])
 
     def testPortagePkg(self):
         pkg = dispatcher.get_package('sys-apps/portage').expect()
         self.repo.merge(pkg).expect()
 
-    def testPkgUnmerge(self):
-        pkg = Package('test', self.source_path)
-        self.repo.merge(pkg).expect()
-        with self.subTest(i=0):
-            self.repo.unmerge(pkg).expect()
-        with self.subTest(i=1):
-            self.repo.remove_package('test').expect()
-        with self.subTest(i=2):
-            self.repo.remove_package('tset').expect_err()
-"""
+# TODO: convert to LocalEbuildFile backend
+#    def testPkgMerge(self):
+#        pkg = Package('test', self.source_path, category='test')
+#        self.repo.merge(pkg).expect()
+#
+#    def testPkgUnmerge(self):
+#        pkg = Package('test', self.source_path, category='test')
+#        self.repo.merge(pkg).expect()
+#        with self.subTest(i=0):
+#            self.repo.unmerge(pkg).expect()
+#        with self.subTest(i=1):
+#            self.repo.remove_package('test').expect()
+#        with self.subTest(i=2):
+#            self.repo.remove_package('tset').expect_err()
