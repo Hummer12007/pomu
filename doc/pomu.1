@@ -1,0 +1,79 @@
+.TH POMU "1" "July 2017" "pomu" "User Commands"
+.SH NAME
+pomu \- a utility to manage portage overlays.
+
+.SH SYNOPSIS
+.B pomu
+[\fI\,OPTIONS\/\fR] \fICOMMAND\/\fR [\fI\,ARGS\/\fR]
+
+.SH DESCRIPTION
+.PP
+pomu is convieved as a command-line utility which would allow the user to import packages (ebuilds) from different sources into a local ebuild repository (and set the repository up), with an option to sync the ebuilds subsequently (with remote changes). Removal of ebuilds should, of course, be possible. Another planned feature is gpo.zugaina.org searching.
+
+.SH COMMANDS
+.PP
+\fB\fRstatus
+.RS 4
+Checks whether pomu is initialized in any repo.
+.RE
+
+.PP
+\fBinit\fR <\fIrepository\fR>
+.RS 4
+Initialises pomu (metadata) for a given repository.
+.RE
+
+.PP
+\fBfetch\fR <\fIpackage\fR>
+.RS 4
+Fetches the given package into a destination directory. Packages are specified by description strings (see \fBPACKAGE DESCRIPTORS\fR)
+.RE
+
+.PP
+\fBinstall\fR <\fIpackage\fR>
+.RS 4
+Installs the given package into the configured repository.
+.RE
+
+.PP
+\fBuninstall\fR <\fIpackage\fR>
+.RS 4
+Uninstalls the given package from the configured repository.
+.RE
+
+.PP
+\fBshow\fR <\fIpackage\fR>
+.RS 4
+Looks up the package in the configured repository and prints its metadata.
+.RE
+
+.PP
+\fBsync\fR [\fIpackage\fR]
+.RS 4
+Syncs ebuilds with sources.
+.RE
+
+.SH PACKAGE DESCRIPTORS
+.PP
+A package can be specified the following (fully qualified) way: SOURCE:NAME, where source is the name of the source (e.g. bug:, pr:, uri:, portage:, and (more complex) portage/REPONAME (for a given portage repo), layman/REPONAME, repo/URI, pr/USER/REPO). The range of allowed values for NAME is determined by the package source, for instance, portage: may accept a package atom (which would match the best (may differ from pms definition) version), or a package name (with or without a category), which would select a package from a repo with highest priority (the best version), and some stuff similar to this. portage/repo: would select a repo. Similar names should be given to layman and repo sources. file: shall accept a filesystem path, uri: shall accept a uri, pr: and bug: shall accept a ticket number.
+.PP
+Of course, some details can be omitted (which would be inferred from other details), for instance a filesystem path can be specified without a file: prefix which is inferred, similarly with uris (where b.g.o uris can resolve to bug: values), a package atom shall refer to local portage repos et cetera.
+
+.SH METADATA
+.PP
+The required data may include a list of the root imported packages (directly imported by the user), and a directory hierarchy (similar to portage's /var/db/pkg) storing data required for the packages. For any given package, the following may be stored: a list of its parents/children (packages and eclasses), as well as user-made changes stored as patches and the original file hashsum (if applicable), a version etc.
+.PP
+Metadata includes a metadata/pomu/pkgs file (a list of packages pulled in by the user (non-significant untill introduction of dependencies) in the format app-category/name). For each added package, it would maintain a metadata/pomu/app-category/name directory, containing: details about the package source (portage repo, uri to the ebuild, path to the local file), (in future) metadata required for tracking changes, for portage source: full package atom of the current version in the repo, list of all files added by the package. Included files:
+
+.PP
+FILES (package contents), BACKEND (used package source), VERSION (package version), PORTAGE_DATA (portage info for portage packages), FS_ORIG_PATH (original file path for local ebuilds).
+
+.SH AUTHOR
+.PP
+Written by Mykyta Holubakha.
+
+.SH SEE ALSO
+.PP
+repoman(1), layman(1), portage(1)
+.PP
+More detailed documentation is available at: <https://wiki.gentoo.org/wiki/User:Hummer12007/pomu>.
