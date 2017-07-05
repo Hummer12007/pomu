@@ -39,9 +39,9 @@ class PortagePackage():
             f.write(self.slot + '\n')
 
     @staticmethod
-    def from_data_file(path):
+    def from_data_dir(pkgdir):
         try:
-            lines = [x.strip() for x in open(path, 'r')]
+            lines = [x.strip() for x in open(path.join(pkgdir, 'PORTAGE_DATA'), 'r')]
         except:
             return Result.Err('Could not read data file')
         if len(lines) < 5:
@@ -125,7 +125,7 @@ class PortageSource():
 
     @classmethod
     def from_meta_dir(cls, metadir):
-        return PortagePackage.from_data_dir(cls, path.join(metadir, 'PORTAGE_DATA'))
+        return PortagePackage.from_data_dir(cls, metadir)
 
 
 def sanity_check(repo, category, name, vernum, suff, rev, slot, ver=None):

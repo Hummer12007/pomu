@@ -31,8 +31,8 @@ class LocalEbuild():
                     ) : self.path})
     
     @staticmethod
-    def from_data_file(path):
-        with open(path, 'r') as f:
+    def from_data_dir(pkgdir):
+        with open(path.join(pkgdir, 'FS_ORIG_PATH'), 'r') as f:
             return LocalEbuildSource.parse_ebuild_path(f.readline()).unwrap()
 
     def write_meta(self, pkgdir):
@@ -66,4 +66,8 @@ class LocalEbuildSource():
     def parse_full(uri):
         if not uri.startswith('fs:'):
             return Result.Err()
-        return LocalEbuildSource.parse_ebuild_path(uri)
+        return LocalEbuildSource.parse_ebuild_path(uri[3:])
+
+    @classmethod
+    def from_meta_dir(cls, metadir):
+        return LocalEbuild.from_data_dir(cls, metadir)

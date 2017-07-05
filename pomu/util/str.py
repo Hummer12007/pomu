@@ -1,5 +1,5 @@
 """String processing utilities"""
-def pivot(string, idx, keep_pivot=True):
+def pivot(string, idx, keep_pivot=False):
     """
     A function to split a string in two, pivoting at string[idx].
     If keep_pivot is set, the pivot character is included in the second string.

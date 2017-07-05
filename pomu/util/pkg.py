@@ -24,19 +24,19 @@ def cpv_split(pkg):
     # openssl-0.9.8z_p8-r100
     m = re.search(r'-r\d+$', pkg) # revision is optional
     if m:
-        pkg, rev = pivot(pkg, m.start(0), False)
+        pkg, rev = pivot(pkg, m.start(0))
     else:
         rev = None
     # openssl-0.9.8z_p8
     m = re.search(r'_({})(\d*)$'.format('|'.join(suffixes)), pkg)
     if m:
-        pkg, suff = pivot(pkg, m.start(0), False)
+        pkg, suff = pivot(pkg, m.start(0))
     else:
         suff = None
     # openssl-0.9.8z
     m = re.search(r'-(\d+(\.\d+)*)([a-z])?$', pkg)
     if m:
-        pkg, vernum = pivot(pkg, m.start(0), False)
+        pkg, vernum = pivot(pkg, m.start(0))
     else:
         vernum = None
     # openssl
