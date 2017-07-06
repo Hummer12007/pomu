@@ -10,6 +10,8 @@ from shutil import copy2
 
 import subprocess
 
+from patch import PatchSet
+
 from pomu.util.fs import strip_prefix
 from pomu.util.result import Result
 
@@ -81,6 +83,13 @@ class Package():
             except PermissionError:
                 return Result.Err('You do not have enough permissions')
         return Result.Ok()
+
+    def apply_patches(self, location, patches):
+        """Applies a sequence of patches at the location"""
+        ps = PatchSet()
+        for p in patches:
+            ps.parse(open(p, 'r'))
+        ps.apply(root=location)
 
     def gen_manifests(self, dst):
         """
