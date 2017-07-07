@@ -6,7 +6,7 @@ import re
 
 from portage.versions import suffix_value
 
-from pomu.util.str import pivot
+from pomu.util.misc import pivot
 
 suffixes = [x[0] for x in sorted(suffix_value.items(), key=lambda x:x[1])]
 

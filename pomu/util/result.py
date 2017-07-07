@@ -55,6 +55,19 @@ class Result():
             return self._val
         raise ResultException(msg + ': ' + self._val)
 
+    def and_(self, rhs):
+        if not self.is_ok():
+            return Result.Err(self.err())
+        return rhs
+
+    def and_then(self, f):
+        return self.map(f)
+
+    def or_(self, rhs):
+        if self.is_ok():
+            return Result.Ok(self.ok())
+        return rhs
+
     def __iter__(self):
         if self._is_val:
             yield self._val

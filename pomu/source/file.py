@@ -6,11 +6,12 @@ from os import path
 
 from pomu.package import Package
 from pomu.source import dispatcher
+from pomu.source.base import PackageBase, BaseSource
 from pomu.util.pkg import cpv_split, ver_str
 from pomu.util.query import query
 from pomu.util.result import Result
 
-class LocalEbuild():
+class LocalEbuild(PackageBase):
     """A class to represent a local ebuild"""
     __name__ = 'fs'
     
@@ -43,7 +44,7 @@ class LocalEbuild():
         return '{}/{}-{} (from {})'.format(self.category, self.name, self.version, self.path)
 
 @dispatcher.source
-class LocalEbuildSource():
+class LocalEbuildSource(BaseSource):
     """The source module responsible for importing local ebuilds"""
     @dispatcher.handler(priority=5)
     def parse_ebuild_path(uri):

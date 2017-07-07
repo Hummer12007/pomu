@@ -6,6 +6,7 @@ from os import path
 from pomu.repo.init import init_plain_repo, init_portage_repo
 from pomu.repo.repo import portage_repo_path, portage_repos, pomu_active_repo
 from pomu.source import dispatcher
+from pomu.util.pkg import cpv_split
 from pomu.util.result import ResultException
 
 #TODO: global --repo option, (env var?)
@@ -71,11 +72,24 @@ def status():
 
 @main.command()
 @click.argument('package', required=True)
+@click.argument('--patch', nargs=-1)
+        #help='Patches for the package')
 @needs_repo
 def install(package):
     """Install a package"""
-    res = dispatcher.install_package(pomu_active_repo(), package).expect()
+    pkg = dispatcher.get_package(package).expect()
+    pkg.patch(patch)
+    res = pomu_active_repo().merge(pkg).expect()
     print(res)
+
+@main.command()
+@click.argument('package', required=True)
+@click.argument('patch', type=click.Path(exists=True), nargs=-1, required=True)
+def patch(package):
+    """Patch an existing package"""
+    category, name, *_ = cpv_split(package)
+    pkg = pomu_active_repo().get_package(name=name, category=category).expect()
+    pkg.patch(patch).expect()
 
 @main.command()
 @click.option('--uri', is_flag=True,

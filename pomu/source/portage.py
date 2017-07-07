@@ -9,11 +9,12 @@ from portage.versions import vercmp
 from pomu.package import Package
 from pomu.repo.repo import portage_repos, portage_repo_path
 from pomu.source import dispatcher
+from pomu.source.base import PackageBase, BaseSource
 from pomu.util.pkg import cpv_split, ver_str
 from pomu.util.portage import repo_pkgs
 from pomu.util.result import Result
 
-class PortagePackage():
+class PortagePackage(PackageBase):
     """A class to represent a portage package"""
     __name__ = 'portage'
 
@@ -58,7 +59,7 @@ class PortagePackage():
 
 
 @dispatcher.source
-class PortageSource():
+class PortageSource(BaseSource):
     """The source module responsible for fetching portage packages"""
     @dispatcher.handler(priority=5)
     def parse_spec(uri, repo=None):

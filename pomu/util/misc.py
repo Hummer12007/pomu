@@ -1,4 +1,15 @@
-"""String processing utilities"""
+"""Miscellaneous utility functions"""
+
+def list_add(dst, src):
+    """
+    Extends the target list with a scalar, or contents of the given list
+    """
+    if isinstance(src, list):
+        dst.extend(src)
+    else:
+        dst.append(src)
+
+
 def pivot(string, idx, keep_pivot=False):
     """
     A function to split a string in two, pivoting at string[idx].

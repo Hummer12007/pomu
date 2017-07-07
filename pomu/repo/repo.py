@@ -1,7 +1,9 @@
 """Subroutines with repositories"""
 from os import path, rmdir, makedirs
+from shutil import copy2
 
 from git import Repo
+from patch import PatchSet
 import portage
 
 from pomu.package import Package
@@ -64,6 +66,13 @@ class Repository():
                 f.write('{}/{}\n'.format(wd, fil))
             for m in manifests:
                 f.write('{}\n'.format(strip_prefix(m, self.root)))
+        if package.patches:
+            patch_dir = path.join(pkgdir, 'patches')
+            makedirs(patch_dir, exist_ok=True)
+            with open(path.join(pkgdir, 'PATCH_ORDER'), 'w') as f:
+                for patch in package.patches:
+                    copy2(patch, patch_dir)
+                    f.write(path.basename(patch) + '\n')
         if package.backend:
             with open(path.join(pkgdir, 'BACKEND'), 'w+') as f:
                 f.write('{}\n'.format(package.backend.__name__))
@@ -107,7 +116,13 @@ class Repository():
             version = f.readline().strip()
         with open(path.join(pkgdir, 'FILES'), 'r') as f:
             files = [x.strip() for x in f]
-        return Package(name, self.root, backend, category=category, version=version, slot=slot, files=files)
+        patches=[]
+        if path.isfile(path.join(pkgdir, 'PATCH_ORDER')):
+            with open(path.join(pkgdir, 'PATCH_ORDER'), 'r') as f:
+                patches = [x.strip() for x in f]
+        pkg = Package(name, self.root, backend, category=category, version=version, slot=slot, files=files, patches=[path.join(pkgdir, 'patches', x) for x in patches])
+        pkg.__class__ = MergedPackage
+        return pkg
 
     def get_package(self, name, category=None, slot=None):
         """Get a package by name, category and slot"""
@@ -161,3 +176,28 @@ def pomu_active_repo(no_portage=None, repo_path=None):
         if repo:
             return Result.Ok(Repository(portage_repo_path(repo), repo))
         return Result.Err('pomu is not initialized')
+
+class MergedPackage(Package):
+    def patch(self, patch):
+        pkgdir = path.join(self.root, 'metadata', 'pomu', self.category, self.name)
+        if self.slot != '0':
+            pkgdir = path.join(pkgdir, self.slot)
+        if isinstance(patch, list):
+            for x in patch:
+                self.patch(x)
+            return Result.Ok()
+        ps = PatchSet()
+        ps.parse(open(patch, 'r'))
+        ps.apply(root=self.root)
+        self.add_patch(patch)
+        return Result.Ok()
+
+    def add_patch(self, patch):
+        pkgdir = path.join(self.root, 'metadata', 'pomu', self.category, self.name)
+        if self.slot != '0':
+            pkgdir = path.join(pkgdir, self.slot)
+        patch_dir = path.join(pkgdir, 'patches')
+        makedirs(patch_dir, exist_ok=True)
+        copy2(patch, patch_dir)
+        with open(path.join(pkgdir, 'PATCH_ORDER'), 'w+') as f:
+            f.write(path.basename(patch) + '\n')

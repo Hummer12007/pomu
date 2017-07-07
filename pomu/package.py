@@ -13,10 +13,11 @@ import subprocess
 from patch import PatchSet
 
 from pomu.util.fs import strip_prefix
+from pomu.util.misc import list_add
 from pomu.util.result import Result
 
 class Package():
-    def __init__(self, name, root, backend=None, category=None, version=None, slot='0', d_path=None, files=None, filemap=None):
+    def __init__(self, name, root, backend=None, category=None, version=None, slot='0', d_path=None, files=None, filemap=None, patches=[]):
         """
         Parameters:
             backend - specific source module object/class
@@ -35,6 +36,7 @@ class Package():
         self.version = version
         self.slot = slot
         self.filemap = {}
+        self.patches = patches
         if d_path is None and files is None and filemap is None:
             self.d_path = None
             self.read_path(self.root)
@@ -82,14 +84,18 @@ class Package():
                 copy2(src, dest)
             except PermissionError:
                 return Result.Err('You do not have enough permissions')
-        return Result.Ok()
+        return Result.Ok().and_(self.apply_patches())
 
-    def apply_patches(self, location, patches):
-        """Applies a sequence of patches at the location"""
+    def patch(self, patch):
+        list_add(self.patches, patch)
+
+    def apply_patches(self):
+        """Applies a sequence of patches at the root (after merging)"""
         ps = PatchSet()
-        for p in patches:
+        for p in self.patches:
             ps.parse(open(p, 'r'))
-        ps.apply(root=location)
+        ps.apply(root=self.root)
+        return Result.Ok()
 
     def gen_manifests(self, dst):
         """
