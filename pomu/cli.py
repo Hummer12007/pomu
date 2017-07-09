@@ -72,10 +72,10 @@ def status():
 
 @main.command()
 @click.argument('package', required=True)
-@click.argument('--patch', nargs=-1)
+@click.option('--patch', nargs=-1)
         #help='Patches for the package')
 @needs_repo
-def install(package):
+def install(package, patch):
     """Install a package"""
     pkg = dispatcher.get_package(package).expect()
     pkg.patch(patch)
@@ -90,6 +90,12 @@ def patch(package):
     category, name, *_ = cpv_split(package)
     pkg = pomu_active_repo().get_package(name=name, category=category).expect()
     pkg.patch(patch).expect()
+
+@main.command()
+@click.argument('--single', is_flag=True, required=False, default=False)
+def commit(single):
+    repo = pomu_active_repo()
+    change_map = process_changes(repo).expect()
 
 @main.command()
 @click.option('--uri', is_flag=True,

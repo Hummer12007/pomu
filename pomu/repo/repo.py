@@ -1,4 +1,5 @@
 """Subroutines with repositories"""
+123
 from os import path, rmdir, makedirs
 from shutil import copy2
 
@@ -135,6 +136,11 @@ class Repository():
                         return self._get_package(category, name, slot)
         return Result.Err('Package not found')
 
+    def get_packages(self):
+        with open(path.join(self.pomu_dir, 'world'), 'r') as f:
+            lines = [x.strip() for x in f.readlines() if x.strip() != '']
+        return lines
+
 
 def portage_repos():
     """Yield the repositories configured for portage"""
@@ -192,12 +198,18 @@ class MergedPackage(Package):
         self.add_patch(patch)
         return Result.Ok()
 
-    def add_patch(self, patch):
+    def add_patch(self, patch, name=None): # patch is a path, unless name is passed
         pkgdir = path.join(self.root, 'metadata', 'pomu', self.category, self.name)
         if self.slot != '0':
             pkgdir = path.join(pkgdir, self.slot)
         patch_dir = path.join(pkgdir, 'patches')
         makedirs(patch_dir, exist_ok=True)
-        copy2(patch, patch_dir)
-        with open(path.join(pkgdir, 'PATCH_ORDER'), 'w+') as f:
-            f.write(path.basename(patch) + '\n')
+        if name is None:
+            copy2(patch, patch_dir)
+            with open(path.join(pkgdir, 'PATCH_ORDER'), 'w+') as f:
+                f.write(path.basename(patch) + '\n')
+        else:
+            with open(path.join(patch_dir, name), 'w') as f:
+                f.write(patch)
+            with open(path.join(pkgdir, 'PATCH_ORDER'), 'w+') as f:
+                f.write(name + '\n')
