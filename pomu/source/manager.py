@@ -75,7 +75,7 @@ class PackageDispatcher():
         """
         i = 0
         for i in range(len(self.handlers)):
-            if self.handlers[0][0] > priority:
+            if self.handlers[i][0] > priority:
                 break
         self.handlers.insert(i, (priority, source, handler))
 
