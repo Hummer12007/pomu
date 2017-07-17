@@ -184,10 +184,14 @@ def pomu_active_repo(no_portage=None, repo_path=None):
         return Result.Err('pomu is not initialized')
 
 class MergedPackage(Package):
-    def patch(self, patch):
-        pkgdir = path.join(self.root, 'metadata', 'pomu', self.category, self.name)
+    @property
+    def pkgdir(self):
+        ret = path.join(self.root, 'metadata', 'pomu', self.category, self.name)
         if self.slot != '0':
-            pkgdir = path.join(pkgdir, self.slot)
+            ret = path.join(ret, self.slot)
+        return ret
+
+    def patch(self, patch):
         if isinstance(patch, list):
             for x in patch:
                 self.patch(x)
@@ -198,18 +202,21 @@ class MergedPackage(Package):
         self.add_patch(patch)
         return Result.Ok()
 
+    @property
+    def patch_list(self):
+        with open(path.join(self.pkgdir, 'PATCH_ORDER'), 'r') as f:
+            lines = [x.strip() for x in f.readlines() if x.strip() != '']
+        return lines
+
     def add_patch(self, patch, name=None): # patch is a path, unless name is passed
-        pkgdir = path.join(self.root, 'metadata', 'pomu', self.category, self.name)
-        if self.slot != '0':
-            pkgdir = path.join(pkgdir, self.slot)
-        patch_dir = path.join(pkgdir, 'patches')
+        patch_dir = path.join(self.pkgdir, 'patches')
         makedirs(patch_dir, exist_ok=True)
         if name is None:
             copy2(patch, patch_dir)
-            with open(path.join(pkgdir, 'PATCH_ORDER'), 'w+') as f:
+            with open(path.join(self.pkgdir, 'PATCH_ORDER'), 'w+') as f:
                 f.write(path.basename(patch) + '\n')
         else:
             with open(path.join(patch_dir, name), 'w') as f:
                 f.write(patch)
-            with open(path.join(pkgdir, 'PATCH_ORDER'), 'w+') as f:
+            with open(path.join(self.pkgdir, 'PATCH_ORDER'), 'w+') as f:
                 f.write(name + '\n')

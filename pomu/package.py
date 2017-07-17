@@ -59,6 +59,10 @@ class Package():
             res.append(path.split(k))
         return res
 
+    @property
+    def ebuild_path(self):
+        return path.join(self.category, self.name, '{}-{}.ebuild'.format(self.name, self.version))
+
     def strip_root(self, d_path):
         """Strip the root component of d_path"""
         # the path should be either relative, or a child of root
@@ -89,12 +93,28 @@ class Package():
     def patch(self, patch):
         list_add(self.patches, patch)
 
-    def apply_patches(self):
+    def apply_patches(self, revert=False):
         """Applies a sequence of patches at the root (after merging)"""
         ps = PatchSet()
         for p in self.patches:
             ps.parse(open(p, 'r'))
-        ps.apply(root=self.root)
+        for patch in ps:
+            if '.ebuild' in ps.target:
+                ps.source = self.ebuild_path
+                ps.target = self.ebuild_path
+            elif '/files/' in ps.target:
+                comps = ps.target.split('/')
+                comps = [self.category, self.name] + comps[comps.index('files'):]
+                ps.target = '/'.join(comps)
+                if not ps.source.split('/'[-2:] == ['dev', 'null']):
+                    ps.source = '/'.join(comps)
+            else:
+                pass
+
+        if revert:
+            ps.revert(root=self.root)
+        else:
+            ps.apply(root=self.root)
         return Result.Ok()
 
     def gen_manifests(self, dst):
