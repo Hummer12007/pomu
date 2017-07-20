@@ -81,11 +81,15 @@ class Package():
     def merge_into(self, dst):
         """Merges contents of the package into a specified directory (dst)"""
         for trg, src in self.filemap.items():
-            wd, _ = path.split(trg)
+            wd, filename = path.split(trg)
             dest = path.join(dst, wd)
             try:
                 makedirs(dest, exist_ok=True)
-                copy2(src, dest)
+                if isinstance(src, bytes):
+                    with open(path.join(dest, filename), 'wb') as f:
+                        f.write(src)
+                else:
+                    copy2(src, dest)
             except PermissionError:
                 return Result.Err('You do not have enough permissions')
         return Result.Ok().and_(self.apply_patches())

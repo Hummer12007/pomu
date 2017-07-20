@@ -28,11 +28,12 @@ class URLEbuild(PackageBase):
     def fetch(self):
         fd, tfile = tempfile.mkstemp()
         os.close(fd)
-        with open(tfile, 'w') as f:
-            if self.contents:
-                f.write(self.contents)
-            else:
-                fs = grab(self.url)
+        if self.contents:
+            if isinstance(self.contents, str):
+                self.content = self.content.encode('utf-8')
+        else:
+            fs = grab(self.url)
+            self.content = fs[0][1].encode('utf-8')
                 f.write(fs[0][1])
         return Package(self.name, '/', self, self.category, self.version,
                 filemap = {
@@ -40,7 +41,7 @@ class URLEbuild(PackageBase):
                         self.category,
                         self.name,
                         '{}/{}-{}.ebuild'.format(self.category, self.name, self.version)
-                    ) : tfile})
+                    ) : self.content})
     
     @staticmethod
     def from_data_dir(pkgdir):
