@@ -77,7 +77,7 @@ class BugzillaSource():
         idxs = parse_range(rng, len(items))
         if not idxs:
             return Result.Err()
-        filtered = [x for idx, x in enumerate(items) if idx in idxs]
+        filtered = [x for idx, x in enumerate(items) if idx + 1 in idxs]
         files = []
         for idx, item in enumerate(idxs):
             if isinstance(item, str):
