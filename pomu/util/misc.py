@@ -65,4 +65,3 @@ def parse_range(text, max_num=None):
         for x in range(l, r + 1):
             add(x)
     return Result.Ok(res)
-
