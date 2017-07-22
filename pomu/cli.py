@@ -75,8 +75,8 @@ def status():
 @click.option('--patch', nargs=-1)
         #help='Patches for the package')
 @needs_repo
-def install(package, patch):
-    """Install a package"""
+def import(package, patch):
+    """Imports a package"""
     pkg = dispatcher.get_package(package).expect()
     pkg.patch(patch)
     res = pomu_active_repo().merge(pkg).expect()

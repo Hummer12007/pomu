@@ -7,7 +7,7 @@ from git import Repo
 from patch import PatchSet
 import portage
 
-from pomu.package import Package
+from pomu.package import Package, PatchList
 from pomu.util.cache import cached
 from pomu.util.fs import remove_file, strip_prefix
 from pomu.util.result import Result
@@ -32,7 +32,17 @@ class Repository():
     def pomu_dir(self):
         return path.join(self.root, 'metadata/pomu')
 
-    def merge(self, package):
+    def merge(self, mergeable):
+        """Merges a package or a patchset into the repository"""
+        if isinstance(mergeable, Package):
+            return merge_pkg(mergeable)
+        elif isinstance(mergeable, PatchList):
+            pkg = self.get_package(mergeable.name, mergeable.category,
+                    mergeable.slot).unwrap()
+            return pkg.patch(mergeable.patches)
+        return Result.Err() #unreachable yet
+
+    def merge_pkg(self, package):
         """Merge a package (a pomu.package.Package package) into the repository"""
         r = self.repo
         pkgdir = path.join(self.pomu_dir, package.category, package.name)

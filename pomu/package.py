@@ -151,3 +151,12 @@ class Package():
         if self.slot != '0':
             s += self.slot
         return s
+
+class PatchList():
+    """A class to represent a sequence of patches (can be merged in the repo)"""
+    def __init__(self, category, name, version, patches, slot='0'):
+        self.category = category
+        self.name = name
+        self.version = version
+        self.slot = slot
+        self.patches = patches
