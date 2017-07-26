@@ -6,13 +6,11 @@ import xmlrpc.client
 from os import path
 from urllib.parse import urlparse
 
-from pbraw import grab
-
 from pomu.package import Package
 from pomu.source import dispatcher
-from pomu.util.misc import extract_urls, parse_range
-from pomu.util.pkg import cpv_split, ver_str
-from pomu.util.query import query, QueryContext
+from pomu.util.iquery import Prompt
+from pomu.util.misc import extract_urls
+from pomu.util.query import query
 from pomu.util.result import Result
 
 class BzEbuild():
@@ -62,43 +60,19 @@ class BugzillaSource():
         comments = proxy.comments(payload)['bugs'][str(uri)]['comments']
         comment_links = []
         for comment in comments:
-            comment_links.extend(extract_urls(text))
+            comment_links.extend(extract_urls(comment['text']))
         items = attachments + comment_links
         if not items:
             return Result.Err()
-        lines = ['Please select required items (ranges are accepted)']
-        for idx, item in enumerate(items):
-            if isinstance(item, str):
-                lines.append('{} - {}'.format(idx, item))
-            else:
-                lines.append('{} - Attachment: {}'.format(idx, item['file_name']))
-        lines.append('>>> ')
-        rng = query('items', '\n'.join(lines), 1)
-        idxs = parse_range(rng, len(items))
-        if not idxs:
-            return Result.Err()
-        filtered = [x for idx, x in enumerate(items) if idx + 1 in idxs]
-        files = []
-        for idx, item in enumerate(idxs):
-            if isinstance(item, str):
-                files.extend([(x[0], x[1].encode('utf-8')) for x in grab(item)])
-            else:
-                files.append((item['file_name'], item['data']))
+        p = Prompt(items)
+        files = p.run()
         if not files:
             return Result.Err()
         category = query('category', 'Please enter package category').expect()
-        name = query('name', 'Please enter package name')
+        name = query('name', 'Please enter package name').expect()
         ver = query('version', 'Please specify package version for {}'.format(name)).expect()
-        # TODO: ???
-        fmap = {}
-        for fn, data in files:
-            with QueryContext(path=None):
-                fpath = query('path', 'Please enter path for {} file'.format(fn), path.join(category, name, fn))
-                fmap[fpath] = data
-
-
-
-        return Result.Ok(BzEbuild(uri, category, name, ver, uri))
+        fmap = {path.join(category, name, x[2]): x[1] for x in items}
+        return Result.Ok(BzEbuild(uri, category, name, ver, fmap))
 
     @dispatcher.handler(priority=2)
     def parse_link(uri):

@@ -2,15 +2,13 @@
 A package source module to import packages from URLs
 """
 
-from os import path, close
-from tempfile import mkstemp
+from os import path
 
 from pbraw import grab
 
 from pomu.package import Package
 from pomu.source import dispatcher
 from pomu.source.base import PackageBase, BaseSource
-from pomu.util.pkg import cpv_split, ver_str
 from pomu.util.query import query
 from pomu.util.result import Result
 
@@ -26,15 +24,12 @@ class URLEbuild(PackageBase):
         self.contents = contents
 
     def fetch(self):
-        fd, tfile = tempfile.mkstemp()
-        os.close(fd)
         if self.contents:
             if isinstance(self.contents, str):
                 self.content = self.content.encode('utf-8')
         else:
             fs = grab(self.url)
             self.content = fs[0][1].encode('utf-8')
-                f.write(fs[0][1])
         return Package(self.name, '/', self, self.category, self.version,
                 filemap = {
                     path.join(
@@ -70,7 +65,7 @@ class URLGrabberSource(BaseSource):
         category, _, name = name.rpartition('/')
         ver = query('version', 'Please specify package version for {}'.format(name)).expect()
         if not category:
-            category = query('category', 'Please enter category for {}'.format(name), parent).expect()
+            category = query('category', 'Please enter category for {}'.format(name)).expect()
         files = grab(uri)
         if not files:
             return Result.Err()
@@ -80,8 +75,8 @@ class URLGrabberSource(BaseSource):
     def parse_full(url):
         if not url.startswith('url:'):
             return Result.Err()
-        return URLGrabberSource.parse_ebuild_path(uri[3:])
+        return URLGrabberSource.parse_ebuild_path(url[4:])
 
     @classmethod
     def from_meta_dir(cls, metadir):
-        return LocalEbuild.from_data_dir(cls, metadir)
+        return URLEbuild.from_data_dir(cls, metadir)

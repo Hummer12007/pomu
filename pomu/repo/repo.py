@@ -35,7 +35,7 @@ class Repository():
     def merge(self, mergeable):
         """Merges a package or a patchset into the repository"""
         if isinstance(mergeable, Package):
-            return merge_pkg(mergeable)
+            return self.merge_pkg(mergeable)
         elif isinstance(mergeable, PatchList):
             pkg = self.get_package(mergeable.name, mergeable.category,
                     mergeable.slot).unwrap()

@@ -1,6 +1,8 @@
 """Miscellaneous utility functions"""
 import re
 
+from pomu.util.result import Result
+
 def list_add(dst, src):
     """
     Extends the target list with a scalar, or contents of the given list

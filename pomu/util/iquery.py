@@ -1,14 +1,12 @@
 """A module to interactively query"""
 from pydoc import pager
 
-from curtsies import CursorAwareWindow, Input, FSArray, fsarray, fmtstr
+from curtsies import CursorAwareWindow, Input, fsarray, fmtstr
 from curtsies.fmtfuncs import underline
 from pbraw import grab
 
 
 class Position:
-    row = attr.ib()
-    column = attr.ib()
     def __init__(self, row=0, column=0):
         self.row = row
         self.column = column
@@ -21,7 +19,7 @@ def render_entry(entry, width, active=False):
     char = '*' if entry[2] else ' '
     w = 3 + fmtstr(entry[0]).width + 2
     text = fmtstr(entry[3])
-    return fsmtstr(
+    return fmtstr(
             '[' + underline(char) if active else char + '] ' +
             entry[0] + ' ' +
             entry[3][:width - w - 2] + '..' if text.width < width - w else entry[3])
@@ -46,7 +44,7 @@ class Prompt:
              CursorAwareWindow(in_stream=tty_in,
                                out_stream=tty_out,
                                hide_cursor=False,
-                               extra_bytes_callback=input_generator.unget_bytes) as window:
+                               extra_bytes_callback=input_.unget_bytes) as window:
             self.window = window
             self.render()
             for event in input_:
@@ -61,22 +59,22 @@ class Prompt:
     def preview(self):
         entry = self.entries[self.idx]
         if entry[0] is not None:
-            pydoc.pager(entry[1])
+            pager(entry[1])
         else:
             gr = grab(entry)
             if not gr:
                 del self.entries[self.idx]
                 self.idx = clamp(self.idx - 1)
-                pydoc.pager('Error: could not fetch '.format(entry))
+                pager('Error: could not fetch '.format(entry))
             self.entries[self.idx:self.idx+1] = [process_entry((x[0], x[1].encode('utf-8'))) for x in gr]
-            pydoc.pager(self.entries[self.idx][1])
+            pager(self.entries[self.idx][1])
 
     def toggle(self):
         if self.idx == len(self.entries):
             return
         self.entries[self.idx][3] = not self.entries[self.idx][3]
 
-    def process_event(self):
+    def process_event(self, event):
         if self.list:
             if event == '<UP>':
                 self.idx = clamp(self.idx - 1)

@@ -1,20 +1,12 @@
 """
 """
 
-from os import path, walk, makedirs, remove
-from shutil import copy2
+from os import path
 from time import time
 
-import subprocess
-
 from git.repo import Repo
-from patch import PatchSet
 
-from pomu.repo.repo import Repository
-from pomu.util.fs import strip_prefix
-from pomu.util.misc import list_add
 from pomu.util.pkg import cpv_split
-from pomu.util.result import Result
 
 def process_changes(_repo):
     # we only tackle repository changes so far
@@ -32,7 +24,7 @@ def process_changes(_repo):
     for diff in chans: # changes in tracked files
         pkpref = path.dirname(diff.a_path).split('/')[0:1].join('/')
         if pkpref in res:
-            res[pkpref].append(header(diff.a_path, diff.b_path).join('\n') +
+            res[pkpref].append(diff_header(diff.a_path, diff.b_path).join('\n') +
                     diff.diff.decode('utf-8'))
     res = {x: res[x] for x in res if res[x]}
     for _pkg, diffs in res.items(): # add each change as its own patch
@@ -59,7 +51,6 @@ def process_changes(_repo):
         orig = repo.odb.stream(diff.a_blob.binsha).read().decode('utf-8')
         pkg = _repo.get_package(cat, name)
         orig_lines = [path.join(pkg.pkgdir, x.strip()) for x in orig.split('\n') if x.strip() != '']
-        ps = PatchSet()
         pkg.patches = orig_lines
         pkg.apply_patches(revert=True)
         pkg = _repo.get_package(cat, name)
@@ -92,7 +83,7 @@ def process_changes(_repo):
 def new_file_patch(repo, newf):
     with open(path.join(repo.root, newf), 'r') as f:
         lines = ['+' + x.strip('\n') for x in f.readlines()]
-    head = header('/dev/null', newf, len(lines))
+    head = diff_header('/dev/null', newf, len(lines))
     return (head + lines).join('\n') + '\n'
 
 def diff_header(a_path, b_path, lines=None):
@@ -100,4 +91,3 @@ def diff_header(a_path, b_path, lines=None):
     if lines:
         header.append('@@ -0,0 +1,' + lines + ' @@')
     return header
-        filename = path.join(self.category, self.name, '{}-{}.format')

@@ -3,6 +3,7 @@ import click
 
 from os import path
 
+from pomu.patch.patch import process_changes
 from pomu.repo.init import init_plain_repo, init_portage_repo
 from pomu.repo.repo import portage_repo_path, portage_repos, pomu_active_repo
 from pomu.source import dispatcher
@@ -70,12 +71,11 @@ def status():
     else:
         print('pomu is initialized at', repo.root)
 
-@main.command()
+@main.command(name='import')
 @click.argument('package', required=True)
-@click.option('--patch', nargs=-1)
-        #help='Patches for the package')
+@click.option('--patch', nargs = -1)
 @needs_repo
-def import(package, patch):
+def list(package, patch):
     """Imports a package"""
     pkg = dispatcher.get_package(package).expect()
     pkg.patch(patch)
