@@ -24,6 +24,7 @@ class needs_repo():
     def __init__(self, func):
         self.func = func
         self.__name__ = func.__name__
+        self.__doc__ = func.__doc__
 
     def __call__(self, *args):
         pomu_active_repo(g_params.no_portage, g_params.repo_path)
@@ -31,13 +32,13 @@ class needs_repo():
 
 pass_globals = click.make_pass_decorator(GlobalVars, ensure=True)
 
-@click.group()
+@click.group(context_settings=dict(help_option_names=['-h', '--help']))
 @click.option('--no-portage', is_flag=True,
         help='Do not setup the portage repo')
 @click.option('--repo-path',
         help='Path to the repo directory (used with --no-portage)')
 def main(no_portage, repo_path):
-    """A utility to manage portage overlays"""
+    """A utility to import and manage ebuilds portage overlays"""
     g_params.no_portage = no_portage
     g_params.repo_path = repo_path
 
@@ -50,7 +51,7 @@ def main(no_portage, repo_path):
         help='Path for creating new repos')
 @click.argument('repo', required=False)
 def init(g_params, list_repos, create, repo_dir, repo):
-    """Initialise pomu for a repository"""
+    """Initialise a pomu repository"""
     if list_repos:
         print('Available repos:')
         for prepo in portage_repos():
@@ -73,10 +74,10 @@ def status():
 
 @main.command(name='import')
 @click.argument('package', required=True)
-@click.option('--patch', nargs = -1)
+@click.option('--patch', nargs=1, multiple=True)
 @needs_repo
-def list(package, patch):
-    """Imports a package"""
+def import_cmd(package, patch):
+    """Import a package into a repository"""
     pkg = dispatcher.get_package(package).expect()
     pkg.patch(patch)
     res = pomu_active_repo().merge(pkg).expect()
@@ -92,10 +93,10 @@ def patch(package):
     pkg.patch(patch).expect()
 
 @main.command()
-@click.argument('--single', is_flag=True, required=False, default=False)
+@click.option('--single', is_flag=True, required=False, default=False)
 def commit(single):
     repo = pomu_active_repo()
-    change_map = process_changes(repo).expect()
+    change_map = process_changes(repo, single).expect()
 
 @main.command()
 @click.option('--uri', is_flag=True,
@@ -117,7 +118,7 @@ def uninstall(uri, package):
 @click.option('--into', default=None,
         help='Specify fetch destination')
 def fetch(package, into):
-    """Fetch a package into a directory"""
+    """Fetch a package into a directory (or display its contents)"""
     pkg = dispatcher.get_package(package).expect()
     print('Fetched package', pkg, 'at', pkg.root)
     print('Contents:')

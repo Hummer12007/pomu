@@ -8,13 +8,15 @@ from git.repo import Repo
 
 from pomu.util.pkg import cpv_split
 
-def process_changes(_repo):
+def process_changes(_repo, single):
     # we only tackle repository changes so far
     repo = Repo(_repo.root)
     chans = repo.head.commit.diff(None, create_patch=True)
     new_files = repo.untracked_files
     all_pkgs = _repo.get_packages()
     res = {x: [] for x in all_pkgs}
+    multi = not single
+    chanpaks = ([],[],[]) # import, order, apply
 
     ## Process user-made changes to package files
     for f in new_files: # process untracked files
@@ -35,7 +37,10 @@ def process_changes(_repo):
         pkg.add_patch(patch_contents, patch_name)
         repo.index.add([x.a_path for x in diffs])
         repo.index.add([path.join('metadata', cat, name, patch_name)])
-        repo.index.commit('{}/{}: imported user changes'.format(cat, name))
+        if multi:
+            repo.index.commit('{}/{}: imported user changes'.format(cat, name))
+        else:
+            chanpaks[0].append('{}/{}'.format(cat, name))
 
     ## Process patch order changes
     res = {x: [] for x in all_pkgs}
@@ -58,7 +63,10 @@ def process_changes(_repo):
         applied['{}/{}'.format(cat, name)].extend(pkg.patches)
         pkg.apply_patches()
         repo.index.add([diff.a_path, pkg.root])
-        repo.index.commit('{}/{}: modified patch order'.format(cat, name))
+        if multi:
+            repo.index.commit('{}/{}: modified patch order'.format(cat, name))
+        else:
+            chanpaks[1].append('{}/{}'.format(cat, name))
 
 
     ## Process new patch files
@@ -78,7 +86,19 @@ def process_changes(_repo):
             pkg.patch(d)
         repo.index.add(diffs)
         repo.index.add[path.join(cat, name)]
-        repo.index.commit('{}/{}: applied patches'.format(cat, name))
+        if multi:
+            repo.index.commit('{}/{}: applied patches'.format(cat, name))
+        else:
+            chanpaks[2].append('{}/{}'.format(cat, name))
+
+    if not multi:
+        msg = 'Synced modifications:\n'
+        if chanpaks[0]:
+            msg += '\nimported user changes:\n' + '\n'.join(chanpaks[0]) + '\n'
+        if chanpaks[1]:
+            msg += '\nmodified patch order:\n' + '\n'.join(chanpaks[1]) + '\n'
+        if chanpaks[2]:
+            msg += '\napplied patches:\n' + '\n'.join(chanpaks[2]) + '\n'
 
 def new_file_patch(repo, newf):
     with open(path.join(repo.root, newf), 'r') as f:
