@@ -95,6 +95,7 @@ def patch(package):
 @main.command()
 @click.option('--single', is_flag=True, required=False, default=False)
 def commit(single):
+    """Commit user changes"""
     repo = pomu_active_repo()
     change_map = process_changes(repo, single).expect()
 

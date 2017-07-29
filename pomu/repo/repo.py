@@ -111,6 +111,12 @@ class Repository():
         pkg = self.get_package(name).expect()
         return self.unmerge(pkg)
 
+    def update_package(self, category, name, new):
+        """Updates a package, replacing it by a newer version"""
+        pkg = self.get_package(category, name).expect()
+        self.unmerge(pkg).expect()
+        self.merge(new)
+
     def _get_package(self, category, name, slot='0'):
         """Get an existing package (by category, name and slot), reading the manifest"""
         from pomu.source import dispatcher
