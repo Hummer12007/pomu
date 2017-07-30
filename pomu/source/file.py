@@ -70,5 +70,9 @@ class LocalEbuildSource(BaseSource):
         return LocalEbuildSource.parse_ebuild_path(uri[3:])
 
     @classmethod
+    def fetch_package(self, pkg):
+        return pkg.fetch()
+
+    @classmethod
     def from_meta_dir(cls, metadir):
         return LocalEbuild.from_data_dir(cls, metadir)

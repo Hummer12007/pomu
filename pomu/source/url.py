@@ -26,7 +26,7 @@ class URLEbuild(PackageBase):
     def fetch(self):
         if self.contents:
             if isinstance(self.contents, str):
-                self.content = self.content.encode('utf-8')
+                self.content = self.contents.encode('utf-8')
         else:
             fs = grab(self.url)
             self.content = fs[0][1].encode('utf-8')
@@ -35,7 +35,7 @@ class URLEbuild(PackageBase):
                     path.join(
                         self.category,
                         self.name,
-                        '{}/{}-{}.ebuild'.format(self.category, self.name, self.version)
+                        '{}-{}.ebuild'.format(self.name, self.version)
                     ) : self.content})
     
     @staticmethod
@@ -61,7 +61,7 @@ class URLGrabberSource(BaseSource):
         if not (uri.startswith('http://') or uri.startswith('https://')):
             return Result.Err()
 
-        name = query('name', 'Please specify package name'.expect())
+        name = query('name', 'Please specify package name').expect()
         category, _, name = name.rpartition('/')
         ver = query('version', 'Please specify package version for {}'.format(name)).expect()
         if not category:
@@ -76,6 +76,10 @@ class URLGrabberSource(BaseSource):
         if not url.startswith('url:'):
             return Result.Err()
         return URLGrabberSource.parse_ebuild_path(url[4:])
+
+    @classmethod
+    def fetch_package(self, pkg):
+        return pkg.fetch()
 
     @classmethod
     def from_meta_dir(cls, metadir):

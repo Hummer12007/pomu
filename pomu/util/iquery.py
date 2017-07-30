@@ -18,11 +18,14 @@ def render_entry(entry, width, active=False):
     # (name, contents, state, value)
     char = '*' if entry[2] else ' '
     w = 3 + fmtstr(entry[0]).width + 2
-    text = fmtstr(entry[3])
+    if entry[3]:
+        text = fmtstr(entry[3])
+        val = entry[3][:width - w - 2] + '..' if text.width < width - w else entry[3]
+    else:
+        val = ''
     return fmtstr(
-            '[' + underline(char) if active else char + '] ' +
-            entry[0] + ' ' +
-            entry[3][:width - w - 2] + '..' if text.width < width - w else entry[3])
+            '[' + (underline(char) if active else char) + '] ' +
+            entry[0] + ' ' + val)
 
 def process_entry(entry):
     if isinstance(entry, str):
@@ -64,7 +67,7 @@ class Prompt:
             gr = grab(entry)
             if not gr:
                 del self.entries[self.idx]
-                self.idx = clamp(self.idx - 1)
+                self.idx = self.clamp(self.idx - 1)
                 pager('Error: could not fetch '.format(entry))
             self.entries[self.idx:self.idx+1] = [process_entry((x[0], x[1].encode('utf-8'))) for x in gr]
             pager(self.entries[self.idx][1])
@@ -72,16 +75,17 @@ class Prompt:
     def toggle(self):
         if self.idx == len(self.entries):
             return
-        self.entries[self.idx][3] = not self.entries[self.idx][3]
+        e = self.entries[self.idx]
+        self.entries[self.idx] = (e[0], e[1], not e[2], e[3])
 
     def process_event(self, event):
         if self.list:
             if event == '<UP>':
-                self.idx = clamp(self.idx - 1)
+                self.idx = self.clamp(self.idx - 1)
             elif event == '<DOWN>':
-                self.idx = clamp(self.idx + 1)
+                self.idx = self.clamp(self.idx + 1)
             elif event == '<SPACE>':
-                self.toggle(self.idx)
+                self.toggle()
             elif event in {'p', 'P'}:
                 self.preview()
             elif event in {'<ESC>', '<Ctrl-g>'}:
@@ -106,8 +110,9 @@ class Prompt:
 
     def render(self):
         if self.list:
-            output = fsarray([render_entry(x) for x in self.entries] + [' [ OK ] '],
-                    self.window.width)
+            output = fsarray(
+                [render_entry(x, self.window.width, i == self.idx) for i, x in enumerate(self.entries)] +
+                [' [ OK ] '], width=self.window.width)
             self.window.render_to_terminal(output)
             return
         cur = self.entries[self.idx]

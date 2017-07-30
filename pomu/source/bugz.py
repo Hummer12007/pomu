@@ -26,7 +26,7 @@ class BzEbuild():
         self.filemap = filemap
 
     def fetch(self):
-        return Package(self.name, '/', self, self.category, self.version, self.filemap)
+        return Package(self.name, '/', self, self.category, self.version, filemap=self.filemap)
 
     @staticmethod
     def from_data_dir(pkgdir):
@@ -61,7 +61,7 @@ class BugzillaSource():
         comment_links = []
         for comment in comments:
             comment_links.extend(extract_urls(comment['text']))
-        items = attachments + comment_links
+        items = [(x['file_name'], x['data'].data.decode('utf-8')) for x in attachments] + comment_links
         if not items:
             return Result.Err()
         p = Prompt(items)
@@ -71,7 +71,7 @@ class BugzillaSource():
         category = query('category', 'Please enter package category').expect()
         name = query('name', 'Please enter package name').expect()
         ver = query('version', 'Please specify package version for {}'.format(name)).expect()
-        fmap = {path.join(category, name, x[2]): x[1] for x in items}
+        fmap = {path.join(category, name, x[2]): x[1] for x in files}
         return Result.Ok(BzEbuild(uri, category, name, ver, fmap))
 
     @dispatcher.handler(priority=2)
@@ -95,6 +95,10 @@ class BugzillaSource():
         if rem.isdigit():
             return BugzillaSource.parse_bug(rem)
         return BugzillaSource.parse_link(rem)
+
+    @classmethod
+    def fetch_package(self, pkg):
+        return pkg.fetch()
 
     @classmethod
     def from_meta_dir(cls, metadir):
