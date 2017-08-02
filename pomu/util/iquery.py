@@ -2,7 +2,7 @@
 from pydoc import pager
 
 from curtsies import CursorAwareWindow, Input, fsarray, fmtstr
-from curtsies.fmtfuncs import underline
+from curtsies.fmtfuncs import invert
 from pbraw import grab
 
 
@@ -24,7 +24,7 @@ def render_entry(entry, width, active=False):
     else:
         val = ''
     return fmtstr(
-            '[' + (underline(char) if active else char) + '] ' +
+            '[' + (invert(char) if active else char) + '] ' +
             entry[0] + ' ' + val)
 
 def process_entry(entry):
@@ -90,7 +90,7 @@ class Prompt:
                 self.preview()
             elif event in {'<ESC>', '<Ctrl-g>'}:
                 return -1
-            elif event in {'<Ctrl-j>', '<Ctrl-m>'}:
+            elif event in {'e', '<Ctrl-j>', '<Ctrl-m>'}:
                 self.list = False
                 if self.idx == len(self.entries):
                     return -1
@@ -99,11 +99,20 @@ class Prompt:
             if event in {'<ESC>', '<Ctrl-g>'}:
                 self.list = True
             if event == '<BACKSPACE>':
-                self.delete_last_char()
+                self.delete_cur_char()
             elif event == '<SPACE>':
                 self.add_char(' ')
+            elif event == '<HOME>':
+                self.cursor_pos.column = 0
+            elif event == '<END>':
+                self.cursor_pos.column = fmtstr(self.entries[self.idx][3]).width
+            elif event == '<LEFT>':
+                self.cursor_pos.column = clamp(self.cursor_pos.column - 1,
+                        0, fmtstr(self.entries[self.idx][3]).width)
+            elif event == '<RIGHT>':
+                self.cursor_pos.column = clamp(self.cursor_pos.column + 1,
+                        0, fmtstr(self.entries[self.idx][3]).width)
             elif event in {'<Ctrl-j>', '<Ctrl-m>'}:
-                self.set_text(self.text)
                 self.list = True
             elif isinstance(event, str) and not event.startswith('<'):
                 self.add_char(event)
@@ -112,18 +121,25 @@ class Prompt:
         if self.list:
             output = fsarray(
                 [render_entry(x, self.window.width, i == self.idx) for i, x in enumerate(self.entries)] +
-                [' [ OK ] '], width=self.window.width)
+                [' [ ' + 
+                    ('OK' if self.idx < len(self.entries) else invert('OK')) +
+                    ' ] '], width=self.window.width)
             self.window.render_to_terminal(output)
             return
+        self.cursor_pos.row = 1
         cur = self.entries[self.idx]
-        output = fsarray(['Please provide value for {}'.format(cur[0]), cur[3]], self.window.width)
+        output = fsarray(['Please provide value for {}'.format(cur[0]), cur[3]], width=self.window.width)
         self.window.render_to_terminal(output, (self.cursor_pos.row, self.cursor_pos.column))
 
     def add_char(self, char):
-        self.entries[self.idx][3] += char
+        e = self.entries[self.idx]
+        p = self.cursor_pos.column
+        self.entries[self.idx] = (e[0], e[1], e[2], e[3][:p] + char + e[3][p:])
         self.cursor_pos.column += 1
 
-    def delete_last_char(self):
-        if self.text:
-            self.entries[self.idx][3] += self.entries[self.idx][3][:-1]
+    def delete_cur_char(self):
+        e = self.entries[self.idx]
+        p = self.cursor_pos.column
+        if e[3]:
+            self.entries[self.idx] = (e[0], e[1], e[2], e[3][:p - 1] + e[3][p:])
             self.cursor_pos.column -= 1
