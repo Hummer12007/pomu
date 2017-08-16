@@ -8,7 +8,7 @@ from urllib.parse import urlparse
 
 from pomu.package import Package
 from pomu.source import dispatcher
-from pomu.util.iquery import Prompt
+from pomu.util.iquery import EditSelectPrompt
 from pomu.util.misc import extract_urls
 from pomu.util.query import query
 from pomu.util.result import Result
@@ -64,7 +64,7 @@ class BugzillaSource():
         items = [(x['file_name'], x['data'].data.decode('utf-8')) for x in attachments] + comment_links
         if not items:
             return Result.Err()
-        p = Prompt(items)
+        p = EditSelectPrompt(items)
         files = p.run()
         if not files:
             return Result.Err()
