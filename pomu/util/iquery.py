@@ -19,7 +19,7 @@ def render_entry(name, state, value, width, active=False):
     w = 3 + fmtstr(name).width + 2
     if value:
         text = fmtstr(value)
-        val = value[:width - w - 2] + '..' if text.width < width - w else value
+        val = value[:width - w - 2] + '..' if text.width >= width - w else value
     else:
         val = ''
     return fmtstr(
@@ -57,7 +57,7 @@ class Prompt:
     def preview(self):
         pass
 
-    def extract_ncv(self, entry):
+    def extract_nsv(self, entry):
         raise NotImplementedError()
 
     def toggle(self):
@@ -83,7 +83,7 @@ class Prompt:
 
     def render(self):
         output = fsarray(
-            [render_entry(*self.extract_ncv(), self.window.width, i == self.idx) for i, x in enumerate(self.entries)] +
+            [render_entry(*self.extract_nsv(x), self.window.width, i == self.idx) for i, x in enumerate(self.entries)] +
             [' [ ' +
                 ('OK' if self.idx < len(self.entries) else invert('OK')) +
                 ' ] '], width=self.window.width)
@@ -93,7 +93,7 @@ class PickerPrompt(Prompt):
     def process_entry(self, entry):
         return (entry[0], False, entry[1])
 
-    def extract_ncv(self, entry):
+    def extract_nsv(self, entry):
         return entry
 
     def results(self):
@@ -107,14 +107,14 @@ class PickerPrompt(Prompt):
 
 
 class EditSelectPrompt(Prompt):
-    def __init__(self):
-        super.init()
+    def __init__(self, items):
+        super().__init__(items)
         self.text = ''
         self.list = True
 
     def render(self):
         if self.list:
-            super.render()
+            super().render()
         else:
             self.cursor_pos.row = 1
             cur = self.entries[self.idx]
@@ -124,9 +124,12 @@ class EditSelectPrompt(Prompt):
     def results(self):
         return [(x[0], x[1], x[3]) for x in self.entries if x[2]]
 
+    def extract_nsv(self, entry):
+        return (entry[0], entry[2], entry[3])
+
     def process_event(self, event):
         if self.list:
-            res = super.process_event(event)
+            res = super().process_event(event)
             if res == -1:
                 return -1
             elif res:
