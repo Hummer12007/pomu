@@ -23,13 +23,13 @@ class ZugainaDataSource(DataSource):
         text = self.fetch_page(1)
         doc = lxml.html.document_fromstring(text)
         field = doc.xpath('//div[@class="pager"]/span')[0].text
-        self.pagecount = (field.split(' ')[-1] + 49) // 50
+        self.pagecount = (int(field.split(' ')[-1]) + 49) // 50
         return self.pagecount
 
     def get_page(self, page):
         text = self.fetch_page(page)
         doc = lxml.html.document_fromstring(text)
-        return [(strip(x.text), x.getchildren()[0].text)
+        return [(x.text.strip(), x.getchildren()[0].text)
                 for x in doc.xpath('//div[@id="search_results"]/a/div')]
 
     def list_items(self, ident):
@@ -38,12 +38,13 @@ class ZugainaDataSource(DataSource):
         res = []
         for div in doc.xpath('//div[@id="ebuild_list"]/ul/div'):
             id_ = div.xpath('li/a')[0].get('href').split('/')[3]
-            pv = div.xpath('li/div/b').text
+            pv = div.xpath('li/div/b')[0].text
             overlay = div.xpath('@id')
-            res.append(id_, pv, overlay)
+            res.append((id_, pv, overlay))
+        return res
 
     def get_item(self, ident):
-        return results.get(BASE_URL + 'AJAX/Ebuild/' + ident).text
+        return requests.get(BASE_URL + 'AJAX/Ebuild/' + str(ident)).text
 
     def fetch_item(self, ident):
         if ident in self.itemcache:

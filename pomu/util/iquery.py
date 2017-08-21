@@ -32,14 +32,15 @@ class Prompt:
         self.idx = 0
         self.cursor_pos = Position()
 
-    def run(self):
+    def run(self, window_type=CursorAwareWindow, **args):
         with open('/dev/tty', 'r') as tty_in, \
              open('/dev/tty', 'w') as tty_out, \
              Input(in_stream=tty_in) as input_, \
-             CursorAwareWindow(in_stream=tty_in,
-                               out_stream=tty_out,
-                               hide_cursor=False,
-                               extra_bytes_callback=input_.unget_bytes) as window:
+             window_type(in_stream=tty_in,
+                         out_stream=tty_out,
+                         hide_cursor=False,
+                         extra_bytes_callback=input_.unget_bytes,
+                         **args) as window:
             self.window = window
             self.render()
             for event in input_:
@@ -163,7 +164,8 @@ class EditSelectPrompt(Prompt):
                 self.list = True
             elif isinstance(event, str) and not event.startswith('<'):
                 self.add_char(event)
-            else:
+            else,
+            **args:
                 return False
             return True
 

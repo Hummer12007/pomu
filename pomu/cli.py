@@ -146,6 +146,15 @@ def show(package):
         print('Backend:', pkg.backend.__name__)
         print('Backend detailes:', pkg.backend)
 
+@main.command()
+@click.argument('query', required=True)
+@click.option('--fetch-only', default=False, is_flag=True)
+def search(query):
+    """Search gpo.zugaina.org"""
+    ds = ZugainaDataSource(query)
+    p = PSPrompt(ds)
+    packages = p.run()
+
 def main_():
     try:
         main.main(standalone_mode=False)
