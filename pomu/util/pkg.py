@@ -14,7 +14,7 @@ def ver_str(vernum, suff, rev):
     """Gets the string representation of the version (specified by number, suffix and rev)"""
     return vernum + (suff if suff else '') + (rev if rev else '')
 
-def cpv_split(pkg):
+def cpv_split(pkg, unified_ver=False):
     """
     Extracts category, name, version number, suffix, revision from a package descriptor
     e.g. dev-libs/openssl-0.9.8z_p8-r100 -> dev-libs, openssl, 0.9.8z, p8, r100
@@ -41,4 +41,7 @@ def cpv_split(pkg):
         vernum = None
     # openssl
     name = pkg
-    return category, name, vernum, suff, rev
+    if unified_ver:
+        return category, name, ver_str(vernum, suff, rev)
+    else:
+        return category, name, vernum, suff, rev

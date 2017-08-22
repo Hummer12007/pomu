@@ -28,7 +28,7 @@ class Entry:
         return len(self.children) + 1 if self.expanded else 1
 
     def selected(self):
-        return [child for child in self.children if child[0]]
+        return [child[1] for child in self.children if child[0]]
 
 class PromptState(Enum):
     TOP_PREV=0
@@ -43,6 +43,19 @@ class PSPrompt(Prompt):
         self.pages = {}
         self.state = PromptState.LIST
         self.set_page(1)
+
+    def results():
+        # (cp, v, overlay, data)
+        res = []
+        for k, v in self. itemitems():
+            for entry in v:
+                cp = entry.item[0]
+                for child in entry.selected():
+                    cid, v, overlay = *child
+                    data = self.data.get_item(cid)
+                    res.append((cp, v, overlay, data))
+        return res
+
 
     def set_page(self, page):
         self.idx = 0
@@ -77,7 +90,7 @@ class PSPrompt(Prompt):
             stt = '*' if hld else ' '
             text = '     [' + invert(stt) if idx == 0 else stt + '] '
             text += '{}::{}'.format(data[1], data[2])
-        else if entry[0]:
+        elif entry[0]:
             data = entry[0]
             exp = 'v' if entry.expanded else '>'
             text = '[' + invert(exp) if idx == 0 else exp + '] '
@@ -88,6 +101,19 @@ class PSPrompt(Prompt):
         else:
             text = ''
         return text
+
+    def process_event(self, event):
+        res = super().process_event(event)
+        if res:
+            return res
+        elif event == '<TAB>':
+            self.state = (self.state + 1) % 2
+        elif event in {'<Ctrl-j>', '<Ctrl-m>'}:
+            if self.state < 2:
+                return -1
+        else:
+            return False
+        return True
 
 
     def __len__(self):
@@ -101,6 +127,10 @@ class PSPrompt(Prompt):
     def clamp(self, x):
         return clamp(x, 0, len(self))
 
+    def toggle(self):
+        item, idx = self.get_idx(self.idx)
+        item.toggle(idx)
+
     def preview(self):
         target = self.get_target()
         if target[1]:
@@ -109,21 +139,21 @@ class PSPrompt(Prompt):
     
     def lens(self):
         h = self.window.height - 2
-        lst = [self.get_idx(i) for i in range(self.idx, self.clamp(self.idx + h))]
+        lst = [self.get_idx(i)[0] for i in range(self.idx, self.clamp(self.idx + h))]
         lst += [(None, None)] * clamp(h - len(lst), 0, h)
         return lst
 
     def get_target(self):
-        return get_idx(self.idx)
+        return get_idx(self.idx)[0]
 
     def get_idx(self, idx):
         for entry in self.entries():
             if len(entry) > idx:
                 break
             idx -= len(entry)
-        return entry.get_idx(idx)
+        return (entry.get_idx(idx), idx)
 
-    def process_entry(self, entry):
+    def process_entry(self, item):
         return Entry(item, self.data)
 
     def run(self):

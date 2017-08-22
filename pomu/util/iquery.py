@@ -164,8 +164,6 @@ class EditSelectPrompt(Prompt):
                 self.list = True
             elif isinstance(event, str) and not event.startswith('<'):
                 self.add_char(event)
-            else,
-            **args:
                 return False
             return True
 

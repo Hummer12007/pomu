@@ -5,6 +5,7 @@ import lxml.html
 import requests
 
 from pomu.data.datasource import DataSource
+from pomu.util.pkg import cpv_split
 
 BASE_URL = 'https://gpo.zugaina.org/'
 SBASE_URL = BASE_URL + 'Search?search={}&page={}'
@@ -39,8 +40,9 @@ class ZugainaDataSource(DataSource):
         for div in doc.xpath('//div[@id="ebuild_list"]/ul/div'):
             id_ = div.xpath('li/a')[0].get('href').split('/')[3]
             pv = div.xpath('li/div/b')[0].text
+            v = cpv_split(pv, True)[2]
             overlay = div.xpath('@id')
-            res.append((id_, pv, overlay))
+            res.append((id_, v, overlay))
         return res
 
     def get_item(self, ident):
