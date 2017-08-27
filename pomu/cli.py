@@ -3,9 +3,11 @@ import click
 
 from os import path
 
+from pomu.data.zugaina import ZugainaDataSource
 from pomu.patch.patch import process_changes
 from pomu.repo.init import init_plain_repo, init_portage_repo
 from pomu.repo.repo import portage_repo_path, portage_repos, pomu_active_repo
+from pomu.search import PSPrompt
 from pomu.source import dispatcher
 from pomu.util.pkg import cpv_split
 from pomu.util.result import ResultException
@@ -149,7 +151,7 @@ def show(package):
 @main.command()
 @click.argument('query', required=True)
 @click.option('--fetch-only', default=False, is_flag=True)
-def search(query):
+def search(query, fetch_only):
     """Search gpo.zugaina.org"""
     ds = ZugainaDataSource(query)
     p = PSPrompt(ds)

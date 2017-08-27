@@ -35,18 +35,23 @@ class Prompt:
     def run(self, window_type=CursorAwareWindow, **args):
         with open('/dev/tty', 'r') as tty_in, \
              open('/dev/tty', 'w') as tty_out, \
-             Input(in_stream=tty_in) as input_, \
-             window_type(in_stream=tty_in,
-                         out_stream=tty_out,
-                         hide_cursor=False,
-                         extra_bytes_callback=input_.unget_bytes,
-                         **args) as window:
-            self.window = window
+             Input(in_stream=tty_in) as input_:
+            if window_type == CursorAwareWindow:
+                iargs = {'in_stream':tty_in, 'out_stream':tty_out,
+                        'hide_cursor':False, 'extra_bytes_callback':input_.unget_bytes}
+            else:
+                iargs = {'out_stream':tty_out}
+            iargs.update(args)
+            with window_type(**args) as window:
+                return self.event_loop(window, input_)
+
+    def event_loop(self, window, input_):
+        self.window = window
+        self.render()
+        for event in input_:
+            if self.process_event(event) == -1:
+                break
             self.render()
-            for event in input_:
-                if self.process_event(event) == -1:
-                    break
-                self.render()
         return self.results()
 
     def clamp(self, x):

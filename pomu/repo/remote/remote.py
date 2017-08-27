@@ -1,10 +1,37 @@
 """A template class for remote repos"""
-
+from urllib.parse import urlparse
 
 class RemoteRepo():
     """A class responsible for remotes"""
     def __init__(self, url):
         raise NotImplementedError()
+
+    @classmethod
+    def from_url(cls, uri, type_=None):
+        tp = RemoteRepo.type_for_name(type_)
+        if not tp:
+            try:
+                scheme, *_ = urlparse(uri)
+            except:
+                tp = RemoteGitRepo
+            if (scheme.startswith('http') or scheme.startswith('git')
+                    scheme.startswith('ssh')):
+                tp = RemoteGitRepo
+            elif scheme.startswith('svn'):
+                tp = RemoteSvnRepo
+            elif scheme.startswith('rsync'):
+                tp = RemoteRsyncRepo
+        return tp(uri)
+
+    @classmethod
+    def type_for_name(type_):
+        from pomu.repo.remote.git import RemoteGitRepo
+        from pomu.repo.remote.hg import RemoteHgRepo
+        from pomu.repo.remote.rsync import RemoteRsyncRepo
+        from pomu.repo.remote.svn import RemoteSvnRepo
+        res = {'git': RemoteGitRepo, 'mercurial': RemoteHgRepo,
+                'rsync': RemoteRsyncRepo, 'svn': RemoteSvnRepo}
+        return res.get(type_)
 
     def fetch_package(self, name, category=None, version=None):
         """Fetches a package, determined by the parametres"""
