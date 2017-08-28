@@ -1,6 +1,6 @@
 # Pomu
 
-##Prerequisites
+## Prerequisites
 
 pomu requires the following packages to be installed:
 
