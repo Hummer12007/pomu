@@ -15,6 +15,7 @@ In addition to the necessary dependencies, pomu requires a git ebuild repository
 
 ## Usage
 
+```
 Usage: pomu [OPTIONS] COMMAND [ARGS]...
 
   A utility to import and manage ebuilds portage overlays
@@ -34,6 +35,7 @@ Commands:
   show       Display installed package info
   status     Display pomu status
   uninstall  Uninstall a package
+```
 
 ## Done work (for GSOC)
 
