@@ -1,15 +1,14 @@
 """A class for remote rsync repos"""
-from os import mkdtemp, rmdir, mkfifo, unlink
-import re
+from os import mkdtemp, rmdir, mkfifo, unlink, path
 from subprocess import run
 
-from pomu.repo.remote import RemoteRepo, normalize_key
+from pomu.repo.remote.remote import RemoteRepo, normalize_key
 from pomu.util.result import Result
 
 class RemoteRsyncRepo(RemoteRepo):
     """A class responsible for rsync remotes"""
     def __init__(self, url):
-        self.uri = uri
+        self.uri = url
 
     def __enter__(self):
         pass
@@ -22,7 +21,7 @@ class RemoteRsyncRepo(RemoteRepo):
         if hasattr(self, '_tree'):
             return self._tree
         d = mkdtemp()
-        p = run('rsync', '-rn', '--out-format="%n"' self.uri, d)
+        p = run('rsync', '-rn', '--out-format="%n"', self.uri, d)
         rmdir(d)
         if p.returncode:
             return Result.Err()

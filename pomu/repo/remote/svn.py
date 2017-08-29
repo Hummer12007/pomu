@@ -1,13 +1,13 @@
 """A class for remote svn repos"""
 from subprocess import run
 
-from pomu.repo.remote import RemoteRepo, normalize_key
+from pomu.repo.remote.remote import RemoteRepo, normalize_key
 from pomu.util.result import Result
 
 class RemoteSvnRepo(RemoteRepo):
     """A class responsible for svn remotes"""
     def __init__(self, url):
-        self.uri = uri
+        self.uri = url
 
     def __enter__(self):
         pass

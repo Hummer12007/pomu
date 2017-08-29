@@ -1,17 +1,18 @@
 """A class for remote git repos"""
-from os import chdir, mkdtemp, path
+from os import chdir, path
 from subprocess import call
+from tempfile import mkdtemp
 
 from git import Repo
 
-from pomu.repo.remote import RemoteRepo, normalize_key
+from pomu.repo.remote.remote import RemoteRepo, normalize_key
 from pomu.util.git import parse_object
 from pomu.util.result import Result
 
 class RemoteGitRepo(RemoteRepo):
     """A class responsible for git remotes"""
     def __init__(self, url):
-        self.uri = uri
+        self.uri = url
         self.dir = mkdtemp()
         chdir(self.dir)
         if call('git', 'clone', '--depth=1', '--bare', url) > 0: # we've a problem
@@ -27,11 +28,11 @@ class RemoteGitRepo(RemoteRepo):
     def get_object(self, oid):
         head, tail = oid[0:2], oid[2:]
         opath = path.join(self.dir, 'objects', head, tail)
-        return a.read()
+        return opath.read()
 
     def _fetch_tree(self, obj, tpath):
         res = []
-        ents = parse_object(self.get_object(tid), tpath).unwrap()
+        ents = parse_object(self.get_object(obj), tpath).unwrap()
         for is_dir, sha, opath in ents:
             res.append((opath + '/' if is_dir else '', sha))
             if is_dir:

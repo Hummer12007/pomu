@@ -1,15 +1,15 @@
 """A class for remote hg repos"""
-from os import chdir, mkdtemp, path
+from os import chdir, mkdtemp
 from shutil import rmtree
-from subprocess import call, run, check_output
+from subprocess import call, run
 
-from pomu.repo.remote import RemoteRepo, normalize_key
+from pomu.repo.remote.remote import RemoteRepo, normalize_key
 from pomu.util.result import Result
 
 class RemoteHgRepo(RemoteRepo):
     """A class responsible for hg remotes"""
     def __init__(self, url):
-        self.uri = uri
+        self.uri = url
         self.dir = mkdtemp()
         chdir(self.dir)
         if call('hg', 'clone', '-U', url, '.') > 0: # we've a problem

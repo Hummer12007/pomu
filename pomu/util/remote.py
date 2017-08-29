@@ -7,6 +7,8 @@ from portage.versions import best
 from pomu.util.pkg import ver_str, cpv_split
 from pomu.util.portage import misc_dirs
 
+from pomu.util.result import Result
+
 def filelist_to_cpvs(tree):
     """Converts a list of files to list of cpvs"""
     res = []

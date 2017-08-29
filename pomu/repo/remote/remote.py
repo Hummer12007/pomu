@@ -1,5 +1,9 @@
 """A template class for remote repos"""
+from os import path
 from urllib.parse import urlparse
+
+from pomu.package import Package
+from pomu.util.remote import get_full_cpv, filelist_to_cpvs
 
 class RemoteRepo():
     """A class responsible for remotes"""
@@ -10,11 +14,14 @@ class RemoteRepo():
     def from_url(cls, uri, type_=None):
         tp = RemoteRepo.type_for_name(type_)
         if not tp:
+            from pomu.repo.remote.git import RemoteGitRepo
+            from pomu.repo.remote.rsync import RemoteRsyncRepo
+            from pomu.repo.remote.svn import RemoteSvnRepo
             try:
                 scheme, *_ = urlparse(uri)
             except:
                 tp = RemoteGitRepo
-            if (scheme.startswith('http') or scheme.startswith('git')
+            if (scheme.startswith('http') or scheme.startswith('git') or
                     scheme.startswith('ssh')):
                 tp = RemoteGitRepo
             elif scheme.startswith('svn'):
