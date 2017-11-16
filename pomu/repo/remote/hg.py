@@ -1,7 +1,8 @@
 """A class for remote hg repos"""
-from os import chdir, mkdtemp
+from os import chdir
 from shutil import rmtree
 from subprocess import call, run
+from tempfile import mkdtemp
 
 from pomu.repo.remote.remote import RemoteRepo, normalize_key
 from pomu.util.result import Result

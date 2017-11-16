@@ -31,7 +31,7 @@ class RemoteRepo():
         return tp(uri)
 
     @classmethod
-    def type_for_name(type_):
+    def type_for_name(cls, type_):
         from pomu.repo.remote.git import RemoteGitRepo
         from pomu.repo.remote.hg import RemoteHgRepo
         from pomu.repo.remote.rsync import RemoteRsyncRepo
@@ -42,17 +42,17 @@ class RemoteRepo():
 
     def fetch_package(self, name, category=None, version=None):
         """Fetches a package, determined by the parametres"""
-        cat, n, ver = get_full_cpv(self.fetch_tree(), name, category, version).unwrap()
+        cat, n, ver = get_full_cpv(self.list_cpvs(), name, category, version).unwrap()
         ebuild = '{}/{}/{}-{}.ebuild'.format(cat, n, n, ver)
-        subdir = '/{}/{}'.format(category, name)
+        subdir = '/{}/{}'.format(cat, name)
         filemap = {}
         filemap[ebuild] = self.fetch_file(ebuild).unwrap()
-        subtree = self.fetch_subtree('/{}/{}/'.format(category, name))
+        subtree = self.fetch_subtree('/{}/{}/'.format(cat, name)).unwrap()
         for fpath in subtree:
             if '/' in fpath:
                 parent, _, child = fpath.rpartition('/')
                 if parent != 'files': continue
-            if fpath.endswith('.ebuild') or fpath.endswith('/'): continue
+            if not fpath or fpath.endswith('.ebuild') or fpath.endswith('/'): continue
             p = path.join(subdir, fpath)
             filemap[p] = self.fetch_file(p).unwrap()
         return Package(name, '/', None, category, version, filemap=filemap)
@@ -77,3 +77,4 @@ def normalize_key(key, trail=False):
     k = '/' + key.lstrip('/')
     if trail:
         k = k.rstrip('/') + '/'
+    return k

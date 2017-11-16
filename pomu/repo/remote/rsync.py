@@ -1,6 +1,7 @@
 """A class for remote rsync repos"""
-from os import mkdtemp, rmdir, mkfifo, unlink, path
+from os import rmdir, mkfifo, unlink, path
 from subprocess import run
+from tempfile import mkdtemp
 
 from pomu.repo.remote.remote import RemoteRepo, normalize_key
 from pomu.util.result import Result
