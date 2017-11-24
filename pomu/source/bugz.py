@@ -17,13 +17,13 @@ class BzEbuild():
     """A class to represent a local ebuild"""
     __name__ = 'fs'
 
-    # slots?
-    def __init__(self, bug_id, category, name, version, filemap):
+    def __init__(self, bug_id, filemap, category, name, version, slot='0'):
         self.bug_id = bug_id
+        self.filemap = filemap
         self.category = category
         self.name = name
         self.version = version
-        self.filemap = filemap
+        self.slot = slot
 
     def fetch(self):
         return Package(self.name, '/', self, self.category, self.version, filemap=self.filemap)
@@ -71,8 +71,9 @@ class BugzillaSource():
         category = query('category', 'Please enter package category').expect()
         name = query('name', 'Please enter package name').expect()
         ver = query('version', 'Please specify package version for {}'.format(name)).expect()
+        slot = query('slot', 'Please specify package slot', '0').expect()
         fmap = {path.join(category, name, x[2]): x[1] for x in files}
-        return Result.Ok(BzEbuild(uri, category, name, ver, fmap))
+        return Result.Ok(BzEbuild(uri, fmap, category, name, ver, slot))
 
     @dispatcher.handler(priority=2)
     def parse_link(uri):

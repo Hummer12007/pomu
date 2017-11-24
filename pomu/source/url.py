@@ -16,12 +16,13 @@ class URLEbuild(PackageBase):
     """A class to represent an ebuild fetched from a url"""
     __name__ = 'fs'
     
-    def __init__(self, category, name, version, url, contents=None):
+    def __init__(self, url, contents, category, name, version, slot):
+        self.url = url
+        self.contents = contents
         self.category = category
         self.name = name
         self.version = version
-        self.url = url
-        self.contents = contents
+        self.slot = slot
 
     def fetch(self):
         if self.contents:
@@ -69,7 +70,8 @@ class URLGrabberSource(BaseSource):
         files = grab(uri)
         if not files:
             return Result.Err()
-        return Result.Ok(URLEbuild(category, name, ver, uri, files[0][1]))
+        slot = query('slot', 'Please specify package slot', '0').expect()
+        return Result.Ok(URLEbuild(uri, files[0][1], category, name, ver, slot))
 
     @dispatcher.handler()
     def parse_full(url):

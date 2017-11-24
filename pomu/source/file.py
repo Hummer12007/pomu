@@ -15,12 +15,12 @@ class LocalEbuild(PackageBase):
     """A class to represent a local ebuild"""
     __name__ = 'fs'
     
-    # slots?
-    def __init__(self, category, name, version, path):
+    def __init__(self, path, category, name, version, slot='0'):
+        self.path = path
         self.category = category
         self.name = name
         self.version = version
-        self.path = path
+        self.slot = slot
 
     def fetch(self):
         return Package(self.name, '/', self, self.category, self.version,
@@ -61,7 +61,8 @@ class LocalEbuildSource(BaseSource):
         if not ver:
             ver = query('version', 'Please specify package version for {}'.format(basen)).expect()
         category = query('category', 'Please enter category for {}'.format(basen), parent).expect()
-        return Result.Ok(LocalEbuild(category, name, ver, uri))
+        slot = query('slot', 'Please specify package slot', '0').expect()
+        return Result.Ok(LocalEbuild(uri, category, name, ver, slot))
 
     @dispatcher.handler()
     def parse_full(uri):
