@@ -15,6 +15,7 @@ class RemoteRepo():
         tp = RemoteRepo.type_for_name(type_)
         if not tp:
             from pomu.repo.remote.git import RemoteGitRepo
+            from pomu.repo.remote.hg import RemoteHgRepo
             from pomu.repo.remote.rsync import RemoteRsyncRepo
             from pomu.repo.remote.svn import RemoteSvnRepo
             try:
@@ -58,7 +59,7 @@ class RemoteRepo():
         return Package(name, '/', None, category, version, filemap=filemap)
 
     def list_cpvs(self):
-        """Gets a list of all pebuilds in the repo"""
+        """Gets a list of all ebuilds in the repo"""
         return filelist_to_cpvs(self.fetch_tree())
 
     def fetch_tree(self):

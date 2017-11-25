@@ -1,5 +1,6 @@
 """A class for remote git repos"""
 from os import chdir, path
+from shutil import rmtree
 from subprocess import call
 from tempfile import mkdtemp
 
@@ -66,3 +67,6 @@ class RemoteGitRepo(RemoteRepo):
         if k not in dic:
             return Result.Err()
         return parse_object(self.get_object(dic[k]))
+
+    def cleanup(self):
+        rmtree(self.dir)
