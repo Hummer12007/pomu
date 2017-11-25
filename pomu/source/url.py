@@ -9,7 +9,7 @@ from pbraw import grab
 from pomu.package import Package
 from pomu.source import dispatcher
 from pomu.source.base import PackageBase, BaseSource
-from pomu.util.query import query
+from pomu.util.query import query, QueryContext
 from pomu.util.result import Result
 
 class URLEbuild(PackageBase):
@@ -41,15 +41,22 @@ class URLEbuild(PackageBase):
     
     @staticmethod
     def from_data_dir(pkgdir):
-        with open(path.join(pkgdir, 'ORIG_URL'), 'r') as f:
-            return URLGrabberSource.parse_link(f.readline()).unwrap()
+        pkg = PackageBase.from_data_dir(pkgdir)
+        if pkg.is_err():
+            return pkg
+        pkg = pkg.unwrap()
+
+        with QueryContext(category=pkg.category, name=pkg.name, version=pkg.version, slot=pkg.slot):
+            with open(path.join(pkgdir, 'ORIG_URL'), 'r') as f:
+                return URLGrabberSource.parse_link(f.readline()).unwrap()
 
     def write_meta(self, pkgdir):
+        super().write_meta(pkgdir)
         with open(path.join(pkgdir, 'ORIG_URL'), 'w') as f:
             f.write(self.path + '\n')
 
     def __str__(self):
-        return '{}/{}-{} (from {})'.format(self.category, self.name, self.version, self.path)
+        return super().__str__() + ' (from {})'.format(self.url)
 
 @dispatcher.source
 class URLGrabberSource(BaseSource):

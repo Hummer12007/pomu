@@ -7,7 +7,10 @@ package specifications and fetching the specified package, as well as
 instantiating specific packages from the metadata directory.
 """
 
+from os import path
+
 from pomu.source import dispatcher
+from pomu.util.result import Result
 
 class PackageBase():
     """
@@ -19,6 +22,15 @@ class PackageBase():
 
     """The implementation shall provide a name for the package type"""
     __name__ = None
+
+    def __init__(self, category, name, version, slot='0'):
+        """
+        Unified basic metadata storage for all the sources
+        """
+        self.category = category
+        self.name = name
+        self.version = version
+        self.slot = slot
 
     def fetch(self):
         """
@@ -34,23 +46,32 @@ class PackageBase():
         It shall return an instance of this class, and take a path to the meta
         directory.
         """
-        raise NotImplementedError()
+        try:
+            lines = [x.strip() for x in open(path.join(pkgdir, 'PACKAGE_BASE_DATA'), 'r')]
+        except:
+            return Result.Err('Could not read data file')
+        if len(lines) < 4:
+            return Result.Err('Invalid data provided')
+        category, name, version, slot, *_ = lines
+        return Result.Ok(PackageBase(category, name, version, slot))
 
     def write_meta(self, pkgdir):
         """
         This method shall write source-specific metadata to the provided
         metadata directory.
         """
-        raise NotImplementedError()
+        with open(path.join(pkgdir, 'PACKAGE_BASE_DATA'), 'w') as f:
+            f.write(self.category + '\n')
+            f.write(self.name + '\n')
+            f.write(self.version + '\n')
+            f.write(self.slot + '\n')
 
     def __str__(self):
         """
         The implementation shall provide a method to pretty-print
         package-specific metadata (displayed in show command).
-        Example:
-        return '{}/{}-{} (from {})'.format(self.category, self.name, self.version, self.path)
         """
-        raise NotImplementedError()
+        return '{}/{}:{}-{}'.format(self.category, self.name, '' if self.slot == '0' else ':' + self.slot, self.version)
 
 @dispatcher.source
 class BaseSource:

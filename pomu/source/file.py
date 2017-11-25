@@ -8,7 +8,7 @@ from pomu.package import Package
 from pomu.source import dispatcher
 from pomu.source.base import PackageBase, BaseSource
 from pomu.util.pkg import cpv_split, ver_str
-from pomu.util.query import query
+from pomu.util.query import query, QueryContext
 from pomu.util.result import Result
 
 class LocalEbuild(PackageBase):
@@ -16,11 +16,8 @@ class LocalEbuild(PackageBase):
     __name__ = 'fs'
     
     def __init__(self, path, category, name, version, slot='0'):
+        super().__init__(category, name, version, slot)
         self.path = path
-        self.category = category
-        self.name = name
-        self.version = version
-        self.slot = slot
 
     def fetch(self):
         return Package(self.name, '/', self, self.category, self.version,
@@ -33,15 +30,22 @@ class LocalEbuild(PackageBase):
     
     @staticmethod
     def from_data_dir(pkgdir):
-        with open(path.join(pkgdir, 'FS_ORIG_PATH'), 'r') as f:
-            return LocalEbuildSource.parse_ebuild_path(f.readline()).unwrap()
+        pkg = PackageBase.from_data_dir(pkgdir)
+        if pkg.is_err():
+            return pkg
+        pkg = pkg.unwrap()
+
+        with QueryContext(category=pkg.category, name=pkg.name, version=pkg.version, slot=pkg.slot):
+            with open(path.join(pkgdir, 'FS_ORIG_PATH'), 'r') as f:
+                return LocalEbuildSource.parse_ebuild_path(f.readline()).unwrap()
 
     def write_meta(self, pkgdir):
+        super().write_meta(pkgdir)
         with open(path.join(pkgdir, 'FS_ORIG_PATH'), 'w') as f:
             f.write(self.path + '\n')
 
     def __str__(self):
-        return '{}/{}-{} (from {})'.format(self.category, self.name, self.version, self.path)
+        return super().__str__() + ' (from {})'.format(self.path)
 
 @dispatcher.source
 class LocalEbuildSource(BaseSource):

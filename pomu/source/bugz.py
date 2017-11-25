@@ -8,42 +8,47 @@ from urllib.parse import urlparse
 
 from pomu.package import Package
 from pomu.source import dispatcher
+from pomu.source.base import PackageBase, BaseSource
 from pomu.util.iquery import EditSelectPrompt
 from pomu.util.misc import extract_urls
-from pomu.util.query import query
+from pomu.util.query import query, QueryContext
 from pomu.util.result import Result
 
-class BzEbuild():
+class BzEbuild(PackageBase):
     """A class to represent a local ebuild"""
     __name__ = 'fs'
 
     def __init__(self, bug_id, filemap, category, name, version, slot='0'):
+        super().__init__(category, name, version, slot)
         self.bug_id = bug_id
         self.filemap = filemap
-        self.category = category
-        self.name = name
-        self.version = version
-        self.slot = slot
 
     def fetch(self):
         return Package(self.name, '/', self, self.category, self.version, filemap=self.filemap)
 
     @staticmethod
     def from_data_dir(pkgdir):
-        with open(path.join(pkgdir, 'BZ_BUG_ID'), 'r') as f:
-            return BugzillaSource.parse_bug(f.readline()).unwrap()
+        pkg = PackageBase.from_data_dir(pkgdir)
+        if pkg.is_err():
+            return pkg
+        pkg = pkg.unwrap()
+
+        with QueryContext(category=pkg.category, name=pkg.name, version=pkg.version, slot=pkg.slot):
+            with open(path.join(pkgdir, 'BZ_BUG_ID'), 'r') as f:
+                return BugzillaSource.parse_bug(f.readline()).unwrap()
 
     def write_meta(self, pkgdir):
+        super().write_meta(pkgdir)
         with open(path.join(pkgdir, 'BZ_BUG_ID'), 'w') as f:
             f.write(self.bug_id + '\n')
 
     def __str__(self):
-        return '{}/{}-{} (from {})'.format(self.category, self.name, self.version, self.path)
+        return super().__str__() + ' (from {})'.format(self.path)
 
 CLIENT_BASE = 'https://bugs.gentoo.org/xmlrpc.cgi'
 
 @dispatcher.source
-class BugzillaSource():
+class BugzillaSource(BaseSource):
     """The source module responsible for importing ebuilds and patches from bugzilla tickets"""
     @dispatcher.handler(priority=1)
     def parse_bug(uri):
@@ -53,7 +58,7 @@ class BugzillaSource():
         proxy = xmlrpc.client.ServerProxy(CLIENT_BASE).Bug
         payload = {'ids': [uri]}
         try:
-            bug = proxy.get(payload)
+            proxy.get(payload)
         except (xmlrpc.client.Fault, OverflowError) as err:
             return Result.Err(str(err))
         attachments = proxy.attachments(payload)['bugs'][str(uri)]

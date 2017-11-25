@@ -19,11 +19,8 @@ class PortagePackage(PackageBase):
     __name__ = 'portage'
 
     def __init__(self, repo, category, name, version, slot='0'):
+        super().__init__(category, name, version, slot)
         self.repo = repo
-        self.category = category
-        self.name = name
-        self.version = version
-        self.slot = slot
 
     def fetch(self):
         return Package(self.name, portage_repo_path(self.repo), self,
@@ -32,30 +29,25 @@ class PortagePackage(PackageBase):
                     path.join(self.category, self.name, self.name + '-' + self.version + '.ebuild')])
 
     def write_meta(self, pkgdir):
+        super().write_meta(pkgdir)
         with open(path.join(pkgdir, 'PORTAGE_DATA'), 'w') as f:
             f.write(self.repo + '\n')
-            f.write(self.category + '\n')
-            f.write(self.name + '\n')
-            f.write(self.version + '\n')
-            f.write(self.slot + '\n')
 
     @staticmethod
     def from_data_dir(pkgdir):
-        try:
-            lines = [x.strip() for x in open(path.join(pkgdir, 'PORTAGE_DATA'), 'r')]
-        except:
-            return Result.Err('Could not read data file')
-        if len(lines) < 5:
-            return Result.Err('Invalid data provided')
-        res = PortagePackage()
-        res.repo, res.category, res.name, res.version, res.slot, *_ = lines
-        if sanity_check(res.repo, res.category, res.name, None, None, None, res.slot, ver=res.version):
-            return Result.Ok(res)
-        return Result.Err('Package {} not found'.format(res))
+        pkg = PackageBase.from_data_dir(pkgdir)
+        if pkg.is_err():
+            return pkg
+        pkg = pkg.unwrap()
+
+        with open(path.join(pkgdir, 'PORTAGE_DATA'), 'r') as f:
+            repo = f.readline()
+        if sanity_check(repo, pkg.category, pkg.name, None, None, None, pkg.slot, ver=pkg.version):
+            return Result.Ok(PortagePackage(repo, pkg.category, pkg.name, pkg.slot, pkg.version))
+        return Result.Err('Package {} not found'.format(pkg))
 
     def __str__(self):
-        return '{}/{}-{}{}::{}'.format(self.category, self.name, self.version,
-                '' if self.slot == '0' else ':' + self.slot, self.repo)
+        return super().__str__() + '::' + self.repo
 
 
 @dispatcher.source
