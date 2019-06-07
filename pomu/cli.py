@@ -159,7 +159,7 @@ def search(query, fetch_only):
 
 def main_():
     try:
-        main.main(standalone_mode=False)
+        main.main()
     except ResultException as e:
         print(str(e))
 
