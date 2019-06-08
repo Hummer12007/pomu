@@ -18,9 +18,8 @@ class PackageBase():
     It shall be subclassed explicitely.
     The class is responsible for fetching the package, and reading/writing
     the package-specific metadata.
-    """
 
-    """The implementation shall provide a name for the package type"""
+    The implementation shall provide a name for the package type"""
     __cname__ = None
 
     def __init__(self, category, name, version, slot='0'):

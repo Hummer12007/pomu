@@ -104,15 +104,15 @@ class Package():
         for p in self.patches:
             ps.parse(open(p, 'r'))
         for patch in ps:
-            if '.ebuild' in ps.target:
-                ps.source = self.ebuild_path
-                ps.target = self.ebuild_path
-            elif '/files/' in ps.target:
-                comps = ps.target.split('/')
+            if '.ebuild' in patch.target:
+                patch.source = self.ebuild_path
+                patch.target = self.ebuild_path
+            elif '/files/' in patch.target:
+                comps = patch.target.split('/')
                 comps = [self.category, self.name] + comps[comps.index('files'):]
-                ps.target = '/'.join(comps)
-                if not ps.source.split('/'[-2:] == ['dev', 'null']):
-                    ps.source = '/'.join(comps)
+                patch.target = '/'.join(comps)
+                if not patch.source.split('/'[-2:] == ['dev', 'null']):
+                    patch.source = '/'.join(comps)
             else:
                 pass
 

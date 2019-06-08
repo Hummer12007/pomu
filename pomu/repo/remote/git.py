@@ -1,5 +1,5 @@
 """A class for remote git repos"""
-from os import chdir, path
+from os import path
 from shutil import rmtree
 from subprocess import call
 from tempfile import mkdtemp

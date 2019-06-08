@@ -15,7 +15,8 @@ class RemoteRepo():
         tp = RemoteRepo.type_for_name(type_)
         if not tp:
             from pomu.repo.remote.git import RemoteGitRepo
-            from pomu.repo.remote.hg import RemoteHgRepo
+            # no custom schemes for hg, assume git for common ones
+            #from pomu.repo.remote.hg import RemoteHgRepo
             from pomu.repo.remote.rsync import RemoteRsyncRepo
             from pomu.repo.remote.svn import RemoteSvnRepo
             try:

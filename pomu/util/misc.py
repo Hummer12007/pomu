@@ -34,7 +34,7 @@ def extract_urls(text):
 
 def parse_range(text, max_num=None):
     """Parses a numeric range (e.g. 1-2,5-16)"""
-    text = re.sub('\s*-\s*', '-', text)
+    text = re.sub(r'\s*-\s*', '-', text)
     subranges = [x.strip() for x in text.split(',')]
     subs = []
     maxint = -1
