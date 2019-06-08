@@ -12,7 +12,7 @@ suffixes = [x[0] for x in sorted(suffix_value.items(), key=lambda x:x[1])]
 
 def ver_str(vernum, suff, rev):
     """Gets the string representation of the version (specified by number, suffix and rev)"""
-    return vernum + (suff if suff else '') + (rev if rev else '')
+    return vernum + (suff if suff else '') + ('-' + rev if rev else '')
 
 def cpv_split(pkg, unified_ver=False):
     """

@@ -86,7 +86,7 @@ class Repository():
                     f.write(path.basename(patch) + '\n')
         if package.backend:
             with open(path.join(pkgdir, 'BACKEND'), 'w+') as f:
-                f.write('{}\n'.format(package.backend.__name__))
+                f.write('{}\n'.format(package.backend.__cname__))
             package.backend.write_meta(pkgdir)
         with open(path.join(pkgdir, 'VERSION'), 'w+') as f:
             f.write(package.version)
@@ -145,11 +145,12 @@ class Repository():
         """Get a package by name, category and slot"""
         with open(path.join(self.pomu_dir, 'world'), 'r') as f:
             for spec in f:
+                spec = spec.strip()
                 cat, _, nam = spec.partition('/')
                 nam, _, slo = nam.partition(':')
                 if (not category or category == cat) and nam == name:
                     if not slot or (slot == '0' and not slo) or slot == slo:
-                        return self._get_package(category, name, slot)
+                        return Result.Ok(self._get_package(category, name, slot or '0'))
         return Result.Err('Package not found')
 
     def get_packages(self):

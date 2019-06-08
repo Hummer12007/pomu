@@ -5,6 +5,10 @@ import os
 
 def strip_prefix(string, prefix):
     """Returns a string, stripped from its prefix"""
+    if not prefix.endswith('/'):
+        aprefix = prefix + '/'
+        if string.startswith(aprefix):
+            return string[len(aprefix):]
     if string.startswith(prefix):
         return string[len(prefix):]
     else:

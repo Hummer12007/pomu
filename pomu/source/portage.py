@@ -16,7 +16,7 @@ from pomu.util.result import Result
 
 class PortagePackage(PackageBase):
     """A class to represent a portage package"""
-    __name__ = 'portage'
+    __cname__ = 'portage'
 
     def __init__(self, repo, category, name, version, slot='0'):
         super().__init__(category, name, version, slot)
@@ -53,6 +53,8 @@ class PortagePackage(PackageBase):
 @dispatcher.source
 class PortageSource(BaseSource):
     """The source module responsible for fetching portage packages"""
+    __cname__ = 'portage'
+
     @dispatcher.handler(priority=5)
     def parse_spec(uri, repo=None):
         # dev-libs/openssl-0.9.8z_p8-r100:0.9.8::gentoo
@@ -118,7 +120,7 @@ class PortageSource(BaseSource):
 
     @classmethod
     def from_meta_dir(cls, metadir):
-        return PortagePackage.from_data_dir(cls, metadir)
+        return PortagePackage.from_data_dir(metadir)
 
 
 def sanity_check(repo, category, name, vernum, suff, rev, slot, ver=None):

@@ -48,7 +48,7 @@ class PackageDispatcher():
             return cls
         if cls == BaseSource:
             return cls
-        self.backends[cls.__name__] = cls
+        self.backends[cls.__cname__] = cls
         for m, obj in inspect.getmembers(cls):
             if isinstance(obj, self.handler._handler):
                 self.register_package_handler(cls, obj.handler, obj.priority)

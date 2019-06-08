@@ -14,7 +14,7 @@ from pomu.util.result import Result
 
 class URLEbuild(PackageBase):
     """A class to represent an ebuild fetched from a url"""
-    __name__ = 'fs'
+    __cname__ = 'url'
     
     def __init__(self, url, contents, category, name, version, slot):
         self.url = url
@@ -64,6 +64,8 @@ class URLGrabberSource(BaseSource):
     The source module responsible for grabbing modules from URLs,
     including pastebins
     """
+    __cname__ = 'url'
+
     @dispatcher.handler(priority=5)
     def parse_link(uri):
         if not (uri.startswith('http://') or uri.startswith('https://')):

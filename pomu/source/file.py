@@ -13,7 +13,7 @@ from pomu.util.result import Result
 
 class LocalEbuild(PackageBase):
     """A class to represent a local ebuild"""
-    __name__ = 'fs'
+    __cname__ = 'fs'
     
     def __init__(self, path, category, name, version, slot='0'):
         super().__init__(category, name, version, slot)
@@ -50,6 +50,8 @@ class LocalEbuild(PackageBase):
 @dispatcher.source
 class LocalEbuildSource(BaseSource):
     """The source module responsible for importing local ebuilds"""
+    __cname__ = 'fs'
+
     @dispatcher.handler(priority=5)
     def parse_ebuild_path(uri):
         if not path.isfile(uri) or not path.endswith('.ebuild'):

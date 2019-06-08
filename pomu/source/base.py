@@ -21,7 +21,7 @@ class PackageBase():
     """
 
     """The implementation shall provide a name for the package type"""
-    __name__ = None
+    __cname__ = None
 
     def __init__(self, category, name, version, slot='0'):
         """
@@ -85,6 +85,8 @@ class BaseSource:
     It shall provide a method to instantiate a package of this type from the
     metadata directory.
     """
+    __cname__ = None
+
     @dispatcher.handler()
     def parse_full(uri):
         """

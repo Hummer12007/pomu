@@ -15,8 +15,8 @@ from pomu.util.query import query, QueryContext
 from pomu.util.result import Result
 
 class BzEbuild(PackageBase):
-    """A class to represent a local ebuild"""
-    __name__ = 'fs'
+    """A class to represent an ebuild from bugzilla"""
+    __cname__ = 'bugzilla'
 
     def __init__(self, bug_id, filemap, category, name, version, slot='0'):
         super().__init__(category, name, version, slot)
@@ -50,6 +50,8 @@ CLIENT_BASE = 'https://bugs.gentoo.org/xmlrpc.cgi'
 @dispatcher.source
 class BugzillaSource(BaseSource):
     """The source module responsible for importing ebuilds and patches from bugzilla tickets"""
+    __cname__ = 'bugzilla'
+
     @dispatcher.handler(priority=1)
     def parse_bug(uri):
         if not uri.isdigit():

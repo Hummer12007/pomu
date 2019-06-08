@@ -95,7 +95,8 @@ class Package():
         return Result.Ok().and_(self.apply_patches())
 
     def patch(self, patch):
-        list_add(self.patches, patch)
+        if patch:
+            list_add(self.patches, patch)
 
     def apply_patches(self, revert=False):
         """Applies a sequence of patches at the root (after merging)"""

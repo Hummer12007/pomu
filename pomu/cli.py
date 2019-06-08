@@ -28,9 +28,9 @@ class needs_repo():
         self.__name__ = func.__name__
         self.__doc__ = func.__doc__
 
-    def __call__(self, *args):
+    def __call__(self, *args, **kwargs):
         pomu_active_repo(g_params.no_portage, g_params.repo_path)
-        self.func(*args)
+        self.func(*args, **kwargs)
 
 pass_globals = click.make_pass_decorator(GlobalVars, ensure=True)
 
@@ -52,7 +52,7 @@ def main(no_portage, repo_path):
 @click.option('--repo-dir', envvar='POMU_REPO_DIR', default='/var/lib/pomu',
         help='Path for creating new repos')
 @click.argument('repo', required=False)
-def init(g_params, list_repos, create, repo_dir, repo):
+def init(list_repos, create, repo_dir, repo):
     """Initialise a pomu repository"""
     if list_repos:
         print('Available repos:')
@@ -145,7 +145,7 @@ def show(package):
     for f in pkg.files:
         print('  ', path.join(*f))
     if pkg.backend:
-        print('Backend:', pkg.backend.__name__)
+        print('Backend:', pkg.backend.__cname__)
         print('Backend detailes:', pkg.backend)
 
 @main.command()

@@ -21,6 +21,8 @@ def best_ver(repo, category, name, ver=None):
     ebuilds = [category + '/' + name + x[len(name):-7] for x in
             os.listdir(path.join(portage_repo_path(repo), category, name))
             if x.endswith('.ebuild')]
+    if not ebuilds:
+        return None
     cat, name, vernum, suff, rev = cpv_split(best(ebuilds))
     return ver_str(vernum, suff, rev)
 
