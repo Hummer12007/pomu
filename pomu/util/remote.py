@@ -31,7 +31,7 @@ def get_full_cpv(cpvs, name, category=None, version=None):
     cpvl = filter(lambda x: x[1] == name and (not category or x[0] == category), cpvs)
     if not cpvl: return Result.Err()
     if version:
-        cpvl = cpvl.filter(lambda x: x[2] == version)[:1]
+        cpvl = list(filter(lambda x: x[2] == version, cpvl))[:1]
     b = best(list('{}/{}-{}'.format(c, n, v) for c, n, v in cpvl))
     if b:
         cat, name, v, s, r = cpv_split(b)

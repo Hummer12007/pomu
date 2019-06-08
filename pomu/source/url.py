@@ -53,7 +53,7 @@ class URLEbuild(PackageBase):
     def write_meta(self, pkgdir):
         super().write_meta(pkgdir)
         with open(path.join(pkgdir, 'ORIG_URL'), 'w') as f:
-            f.write(self.path + '\n')
+            f.write(self.url + '\n')
 
     def __str__(self):
         return super().__str__() + ' (from {})'.format(self.url)
@@ -86,7 +86,7 @@ class URLGrabberSource(BaseSource):
     def parse_full(url):
         if not url.startswith('url:'):
             return Result.Err()
-        return URLGrabberSource.parse_ebuild_path(url[4:])
+        return URLGrabberSource.parse_link(url[4:])
 
     @classmethod
     def fetch_package(self, pkg):

@@ -63,8 +63,8 @@ class PackageDispatcher():
         class _handler():
             def __init__(self, handler):
                 self.handler = handler
-            def __call__(self, *args):
-                return self.handler(*args)
+            def __call__(self, *args, **kwargs):
+                return self.handler(*args, **kwargs)
 
         def __init__(self, priority=1000, *args, **kwargs):
             self.priority = priority
@@ -72,7 +72,7 @@ class PackageDispatcher():
         def __call__(self, func, *args, **kwargs):
             x = self._handler(func)
             x.priority = self.priority
-            return x
+            return staticmethod(x)
 
     def register_package_handler(self, source, handler, priority):
         """

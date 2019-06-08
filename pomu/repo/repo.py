@@ -96,13 +96,13 @@ class Repository():
         r = self.repo
         for wd, f in package.files:
             dst = path.join(self.root, wd)
-            remove_file(path.join(dst, f))
+            remove_file(r, path.join(dst, f))
             try:
                 rmdir(dst)
             except OSError: pass
         pf = path.join(self.pomu_dir, package.name)
         if path.isfile(pf):
-            remove_file(pf)
+            remove_file(r, pf)
         r.commit('Removed package ' + package.name + ' successfully')
         return Result.Ok('Removed package ' + package.name + ' successfully')
 

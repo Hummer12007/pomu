@@ -25,7 +25,7 @@ def process_changes(_repo, single):
         pkpref = '/'.join(path.dirname(f).split('/')[0:2])
         if pkpref in res:
             paths[pkpref].append(f)
-            res[pkpref].append(new_file_patch(f))
+            res[pkpref].append(new_file_patch(_repo, f))
     for diff in chans: # changes in tracked files
         pkpref = '/'.join(path.dirname(diff.a_path).split('/')[0:2])
         if pkpref in res:

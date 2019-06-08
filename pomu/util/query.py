@@ -56,6 +56,6 @@ class QueryContext:
     def __enter__(self):
         self.map_old = {x: query.set(x, self.map[x]) for x in self.map}
 
-    def __exit__(self):
+    def __exit__(self, ex_type, ex_val, tb):
         for x, y in self.map_old.items():
             query.set(x, y)

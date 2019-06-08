@@ -145,4 +145,4 @@ def sanity_check(repo, category, name, vernum, suff, rev, slot, ver=None):
     pkg = sorted(pkgs, key=cmp_to_key(lambda x,y:vercmp(x[3],y[3])), reverse=True)[0]
     return PortagePackage(*pkg)
 
-__all__ = [PortagePackage, PortageSource]
+__all__ = ['PortagePackage', 'PortageSource']

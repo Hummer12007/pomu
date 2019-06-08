@@ -69,7 +69,7 @@ class Prompt:
     def toggle(self):
         raise NotImplementedError()
 
-    def process_entry(x, entry):
+    def process_entry(self, entry):
         raise NotImplementedError()
 
     def process_event(self, event):
@@ -186,7 +186,7 @@ class EditSelectPrompt(Prompt):
             if not gr:
                 del self.entries[self.idx]
                 self.idx = self.clamp(self.idx - 1)
-                pager('Error: could not fetch '.format(entry))
+                pager('Error: could not fetch {}'.format(entry))
             self.entries[self.idx:self.idx+1] = [self.process_entry((x[0], x[1].encode('utf-8'))) for x in gr]
             pager(self.entries[self.idx][1])
 

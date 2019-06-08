@@ -54,7 +54,7 @@ class LocalEbuildSource(BaseSource):
 
     @dispatcher.handler(priority=5)
     def parse_ebuild_path(uri):
-        if not path.isfile(uri) or not path.endswith('.ebuild'):
+        if not path.isfile(uri) or not uri.endswith('.ebuild'):
             return Result.Err()
         uri = path.abspath(uri)
         dirn, basen = path.split(uri)
