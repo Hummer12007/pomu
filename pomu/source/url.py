@@ -67,6 +67,7 @@ class URLGrabberSource(BaseSource):
     __cname__ = 'url'
 
     @dispatcher.handler(priority=5)
+    @staticmethod
     def parse_link(uri):
         if not (uri.startswith('http://') or uri.startswith('https://')):
             return Result.Err()
@@ -83,6 +84,7 @@ class URLGrabberSource(BaseSource):
         return Result.Ok(URLEbuild(uri, files[0][1], category, name, ver, slot))
 
     @dispatcher.handler()
+    @staticmethod
     def parse_full(url):
         if not url.startswith('url:'):
             return Result.Err()

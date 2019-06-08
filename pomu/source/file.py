@@ -53,6 +53,7 @@ class LocalEbuildSource(BaseSource):
     __cname__ = 'fs'
 
     @dispatcher.handler(priority=5)
+    @staticmethod
     def parse_ebuild_path(uri):
         if not path.isfile(uri) or not uri.endswith('.ebuild'):
             return Result.Err()
@@ -71,6 +72,7 @@ class LocalEbuildSource(BaseSource):
         return Result.Ok(LocalEbuild(uri, category, name, ver, slot))
 
     @dispatcher.handler()
+    @staticmethod
     def parse_full(uri):
         if not uri.startswith('fs:'):
             return Result.Err()

@@ -53,6 +53,7 @@ class BugzillaSource(BaseSource):
     __cname__ = 'bugzilla'
 
     @dispatcher.handler(priority=1)
+    @staticmethod
     def parse_bug(uri):
         if not uri.isdigit():
             return Result.Err()
@@ -83,6 +84,7 @@ class BugzillaSource(BaseSource):
         return Result.Ok(BzEbuild(uri, fmap, category, name, ver, slot))
 
     @dispatcher.handler(priority=2)
+    @staticmethod
     def parse_link(uri):
         res = urlparse(uri)
         if res.netloc != 'bugs.gentoo.org':
@@ -96,6 +98,7 @@ class BugzillaSource(BaseSource):
 
 
     @dispatcher.handler()
+    @staticmethod
     def parse_full(uri):
         if not uri.startswith('bug:'):
             return Result.Err()

@@ -56,6 +56,7 @@ class PortageSource(BaseSource):
     __cname__ = 'portage'
 
     @dispatcher.handler(priority=5)
+    @staticmethod
     def parse_spec(uri, repo=None):
         # dev-libs/openssl-0.9.8z_p8-r100:0.9.8::gentoo
         pkg, _, repo_ = uri.partition('::') # portage repo may be specified on the rhs as well
@@ -72,6 +73,7 @@ class PortageSource(BaseSource):
         return Result.Ok(res)
 
     @dispatcher.handler()
+    @staticmethod
     def parse_full(uri):
         # portage/gentoo:dev-libs/openssl-0.9.8z_p8-r100:0.9.8::gentoo
         if not uri.startswith('portage'):
@@ -89,6 +91,7 @@ class PortageSource(BaseSource):
         return PortageSource.parse_spec(uri, repo)
 
     @dispatcher.handler(priority=4)
+    @staticmethod
     def parse_repo_ebuild(uri):
         if not path.exists(uri):
             return Result.Err()

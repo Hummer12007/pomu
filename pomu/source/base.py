@@ -88,6 +88,7 @@ class BaseSource:
     __cname__ = None
 
     @dispatcher.handler()
+    @staticmethod
     def parse_full(uri):
         """
         This method shall parse a full package specification (which starts with
