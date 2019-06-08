@@ -94,4 +94,4 @@ class URLGrabberSource(BaseSource):
 
     @classmethod
     def from_meta_dir(cls, metadir):
-        return URLEbuild.from_data_dir(cls, metadir)
+        return URLEbuild.from_data_dir(metadir)

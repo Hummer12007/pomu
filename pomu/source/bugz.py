@@ -43,7 +43,7 @@ class BzEbuild(PackageBase):
             f.write(self.bug_id + '\n')
 
     def __str__(self):
-        return super().__str__() + ' (from {})'.format(self.path)
+        return super().__str__() + ' (from bug {})'.format(self.bug_id)
 
 CLIENT_BASE = 'https://bugs.gentoo.org/xmlrpc.cgi'
 
@@ -110,4 +110,4 @@ class BugzillaSource(BaseSource):
 
     @classmethod
     def from_meta_dir(cls, metadir):
-        return BzEbuild.from_data_dir(cls, metadir)
+        return BzEbuild.from_data_dir(metadir)

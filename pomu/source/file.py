@@ -82,4 +82,4 @@ class LocalEbuildSource(BaseSource):
 
     @classmethod
     def from_meta_dir(cls, metadir):
-        return LocalEbuild.from_data_dir(cls, metadir)
+        return LocalEbuild.from_data_dir(metadir)
