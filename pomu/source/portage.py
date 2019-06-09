@@ -41,7 +41,7 @@ class PortagePackage(PackageBase):
         pkg = pkg.unwrap()
 
         with open(path.join(pkgdir, 'PORTAGE_DATA'), 'r') as f:
-            repo = f.readline()
+            repo = f.readline().strip()
         if sanity_check(repo, pkg.category, pkg.name, None, None, None, pkg.slot, ver=pkg.version):
             return Result.Ok(PortagePackage(repo, pkg.category, pkg.name, pkg.slot, pkg.version))
         return Result.Err('Package {} not found'.format(pkg))

@@ -129,6 +129,9 @@ class Repository():
             with open(path.join(pkgdir, 'BACKEND'), 'r') as f:
                 bname = f.readline().strip()
             backend = dispatcher.backends[bname].from_meta_dir(pkgdir)
+            if backend.is_err():
+                return backend
+            backend = backend.ok()
         with open(path.join(pkgdir, 'VERSION'), 'r') as f:
             version = f.readline().strip()
         with open(path.join(pkgdir, 'FILES'), 'r') as f:
@@ -139,7 +142,7 @@ class Repository():
                 patches = [x.strip() for x in f]
         pkg = Package(name, self.root, backend, category=category, version=version, slot=slot, files=files, patches=[path.join(pkgdir, 'patches', x) for x in patches])
         pkg.__class__ = MergedPackage
-        return pkg
+        return Result.Ok(pkg)
 
     def get_package(self, name, category=None, slot=None):
         """Get a package by name, category and slot"""
@@ -150,7 +153,7 @@ class Repository():
                 nam, _, slo = nam.partition(':')
                 if (not category or category == cat) and nam == name:
                     if not slot or (slot == '0' and not slo) or slot == slo:
-                        return Result.Ok(self._get_package(category, name, slot or '0'))
+                        return self._get_package(category, name, slot or '0')
         return Result.Err('Package not found')
 
     def get_packages(self):
