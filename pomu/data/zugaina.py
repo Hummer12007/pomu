@@ -40,7 +40,7 @@ class ZugainaDataSource(DataSource):
         for div in doc.xpath('//div[@id="ebuild_list"]/ul/div'):
             id_ = div.xpath('li/a')[0].get('href').split('/')[3]
             pv = div.xpath('li/div/b')[0].text
-            v = cpv_split(pv, True)[2]
+            v = cpv_split(pv)[2]
             overlay = div.xpath('@id')[0]
             res.append((id_, v, overlay))
         return res

@@ -42,7 +42,7 @@ class PortagePackage(PackageBase):
 
         with open(path.join(pkgdir, 'PORTAGE_DATA'), 'r') as f:
             repo = f.readline().strip()
-        if sanity_check(repo, pkg.category, pkg.name, None, None, None, pkg.slot, ver=pkg.version):
+        if sanity_check(repo, pkg.category, pkg.name, pkg.version, pkg.slot):
             return Result.Ok(PortagePackage(repo, pkg.category, pkg.name, pkg.slot, pkg.version))
         return Result.Err('Package {} not found'.format(pkg))
 
@@ -66,8 +66,8 @@ class PortageSource(BaseSource):
         pkg, _, slot = uri.partition(':') # slot may be omitted
         if not slot:
             slot = None
-        category, name, vernum, suff, rev = cpv_split(pkg)
-        res = sanity_check(repo, category, name, vernum, suff, rev, slot)
+        category, name, ver = cpv_split(pkg)
+        res = sanity_check(repo, category, name, ver, slot)
         if not res:
             return Result.Err()
         return Result.Ok(res)
@@ -103,8 +103,7 @@ class PortageSource(BaseSource):
                 if path.isfile(uri):
                     if not uri.endswith('.ebuild'):
                         return Result.Err()
-                    _, name, v1, v2, v3 = cpv_split(path.basename(uri))
-                    ver = ver_str(v1, v2, v3)
+                    _, name, ver = cpv_split(path.basename(uri))
                     dircomps = path.dirname(uri)[len(repo_path):].split('/')
                     if len(dircomps) != 2:
                         return Result.Err()
@@ -126,7 +125,7 @@ class PortageSource(BaseSource):
         return PortagePackage.from_data_dir(metadir)
 
 
-def sanity_check(repo, category, name, vernum, suff, rev, slot, ver=None):
+def sanity_check(repo, category, name, ver, slot):
     """
     Checks whether a package descriptor is valid and corresponds
     to a package in a configured portage repository
@@ -135,13 +134,6 @@ def sanity_check(repo, category, name, vernum, suff, rev, slot, ver=None):
         return False
     if repo and repo not in list(portage_repos()):
         return False
-    if not ver:
-        if (rev or suff) and not vernum:
-            return False
-        if vernum:
-            ver = ver_str(vernum, suff, rev)
-        else:
-            ver = None
     pkgs = repo_pkgs(repo, category, name, ver, slot)
     if not pkgs:
         return False

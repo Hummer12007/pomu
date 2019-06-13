@@ -20,10 +20,9 @@ def filelist_to_cpvs(tree):
             not comps[2].endswith('.ebuild')):
             continue
         category, name, ebuild = comps[0], comps[1], comps[2][:-7]
-        c, n, v, s, r = cpv_split(ebuild)
+        c, n, ver = cpv_split(ebuild)
         if not category or n != name:
             continue
-        ver = ver_str(v, s, r)
         res.append((category, name, ver))
     return res
 
@@ -34,7 +33,6 @@ def get_full_cpv(cpvs, name, category=None, version=None):
         cpvl = list(filter(lambda x: x[2] == version, cpvl))[:1]
     b = best(list('{}/{}-{}'.format(c, n, v) for c, n, v in cpvl))
     if b:
-        cat, name, v, s, r = cpv_split(b)
-        ver = ver_str(v, s, r)
+        cat, name, ver = cpv_split(b)
         return Result.Ok((cat, name, ver))
     return Result.Err()

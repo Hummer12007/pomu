@@ -35,7 +35,7 @@ def process_changes(_repo, single):
     res = {x: res[x] for x in res if res[x]}
     paths = {x: paths[x] for x in paths if res[x]}
     for _pkg, diffs in res.items(): # add each change as its own patch
-        cat, name, *_ = cpv_split(_pkg)
+        cat, name, _ = cpv_split(_pkg)
         patch_contents = '\n'.join(diffs)
         pkg = _repo.get_package(name, cat).expect()
         patch_name = '{}-user_changes.patch'.format(int(time()))
@@ -88,7 +88,7 @@ def process_changes(_repo, single):
         if pkpref in res:
             res[pkpref].append(f)
     for _pkg, diffs in res.items(): # apply each newly added patch
-        cat, name, *_ = cpv_split(_pkg)
+        cat, name, _ = cpv_split(_pkg)
         pkg = _repo.get_package(name, cat).expect()
         for d in diffs:
             pkg.patch(d)

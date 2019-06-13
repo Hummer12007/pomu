@@ -90,7 +90,7 @@ def import_cmd(package, patch):
 @click.argument('patch', type=click.Path(exists=True), nargs=-1, required=True)
 def patch(package):
     """Patch an existing package"""
-    category, name, *_ = cpv_split(package)
+    category, name, _ = cpv_split(package)
     pkg = pomu_active_repo().get_package(name=name, category=category).expect()
     pkg.patch(patch).expect()
 

@@ -23,8 +23,8 @@ def best_ver(repo, category, name, ver=None):
             if x.endswith('.ebuild')]
     if not ebuilds:
         return None
-    cat, name, vernum, suff, rev = cpv_split(best(ebuilds))
-    return ver_str(vernum, suff, rev)
+    cat, name, ver = cpv_split(best(ebuilds))
+    return ver
 
 def repo_pkgs(repo, category, name, ver=None, slot=None):
     """List of package occurences in the repo"""

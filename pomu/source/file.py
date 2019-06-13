@@ -60,8 +60,7 @@ class LocalEbuildSource(BaseSource):
         uri = path.abspath(uri)
         dirn, basen = path.split(uri)
         basen = basen[:-7]
-        _, name, v1, v2, v3 = cpv_split(basen)
-        ver = ver_str(v1, v2, v3)
+        _, name, ver = cpv_split(basen)
         parent = dirn.split('/')[-1]
         # we need to query the impure world
         # TODO: write a global option which would set the impure values non-interactively
